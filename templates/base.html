@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" -->
+    {% block head %}{% endblock %}
+  </head>
+  <body class="bg-gradient-to-b from-gray-900 to-gray-800 text-white font-sans min-h-screen flex items-center justify-center">
+    {% block body %}{% endblock %}
+  </body>
+</html>

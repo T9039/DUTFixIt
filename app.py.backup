@@ -1,0 +1,442 @@
+from datetime import datetime
+from flask import Flask, redirect, render_template, request
+from flask_sqlalchemy import SQLAlchemy
+from typing import Optional
+from sqlalchemy import Integer, String, Text, DateTime
+
+# My app
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
+
+# Data class(not the same thing) ~ row of data
+class Task(db.Model):
+    id: int = db.Column(db.Integer, primary_key=True)
+    name: str = db.Column(db.String(50), nullable=False)
+    email: str = db.Column(db.String(120), unique=True, nullable=False)
+    message: Optional[str] = db.Column(db.Text, nullable=True)  # good for longer free text
+    complete: int = db.Column(db.Integer, default=0)
+    created: datetime = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"Request {self.id}"
+
+# Routes to pages
+@app.route("/", methods=["POST", "GET"])
+def index():
+    print(Task)
+    if request.method == "POST":
+        print(Task)
+        # Handle JSON POST from JS
+        if request.is_json:
+            data = request.get_json()
+            name = data.get("name", "")
+            email = data.get("email", "")
+            message = data.get("message", "")
+        else:
+            # fallback for normal HTML form POST
+            name = request.form.get("name", "")
+            email = request.form.get("email", "")
+            message = request.form.get("message", "")
+        
+        new_task = Task(name=name, email=email, message=message)
+        try:
+            db.session.add(new_task)
+            db.session.commit()
+            return redirect("/")
+        except Exception as e:
+            print(f"ERROR: {e}")
+            return f"ERROR: {e}"
+    
+    return render_template("form2.html")
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
+
+
+
+____________________________________________________________________________________________
+
+from datetime import datetime
+from flask import Flask, redirect, render_template, request
+from flask_sqlalchemy import SQLAlchemy
+from typing import Optional
+
+# My app
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
+
+# Data class(not the same thing) ~ row of data
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    message = db.Column(db.Text, nullable=True)  # good for longer free text
+    complete = db.Column(db.Integer, default=0)
+    created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __init__(self, name: str, email: str, message: Optional[str] = None, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.email = email
+        self.message = message
+    
+    def __repr__(self):
+        return f"Request {self.id}"
+
+# Routes to pages
+@app.route("/", methods=["POST", "GET"])
+def index():
+    print(Task)
+    if request.method == "POST":
+        print(Task)
+        # Handle JSON POST from JS
+        if request.is_json:
+            data = request.get_json()
+            name = data.get("name", "")
+            email = data.get("email", "")
+            message = data.get("message", "")
+        else:
+            # fallback for normal HTML form POST
+            name = request.form.get("name", "")
+            email = request.form.get("email", "")
+            message = request.form.get("message", "")
+        
+        new_task = Task(name=name, email=email, message=message)
+        try:
+            db.session.add(new_task)
+            db.session.commit()
+            return redirect("/")
+        except Exception as e:
+            print(f"ERROR: {e}")
+            return f"ERROR: {e}"
+    
+    return render_template("form2.html")
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
+
+
+_______________________________________________________________________________
+
+
+from datetime import datetime
+from flask import Flask, redirect, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from typing import Optional
+
+# My app
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
+
+# Data class(not the same thing) ~ row of data
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    message = db.Column(db.Text, nullable=True)  # good for longer free text
+    complete = db.Column(db.Integer, default=0)
+    created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"Request {self.id}"
+
+# Routes to pages
+@app.route("/", methods=["POST", "GET"])
+def index():
+    if request.method == "POST":
+        # Handle JSON POST from JS
+        if request.is_json:
+            data = request.get_json()
+            name = data.get("name", "")
+            email = data.get("email", "")
+            message = data.get("message", "")
+        else:
+            # fallback for normal HTML form POST
+            name = request.form.get("name", "")
+            email = request.form.get("email", "")
+            message = request.form.get("message", "")
+        
+        # Basic validation
+        if not name.strip() or not email.strip():
+            if request.is_json:
+                return jsonify({"success": False, "error": "Name and email are required"}), 400
+            else:
+                return "Error: Name and email are required", 400
+        
+        new_task = Task()
+        new_task.name = name.strip()
+        new_task.email = email.strip().lower()  # normalize email
+        new_task.message = message.strip() if message else None
+        
+        try:
+            db.session.add(new_task)
+            db.session.commit()
+            
+            # Return appropriate response based on request type
+            if request.is_json:
+                return jsonify({
+                    "success": True, 
+                    "message": "Data submitted successfully",
+                    "data": {
+                        "id": new_task.id,
+                        "name": new_task.name,
+                        "email": new_task.email,
+                        "created": new_task.created.isoformat()
+                    }
+                })
+            else:
+                return redirect("/")
+                
+        except Exception as e:
+            print(f"ERROR: {e}")
+            error_msg = str(e)
+            
+            # Handle specific database errors
+            if "UNIQUE constraint failed" in error_msg:
+                error_msg = "This email address is already registered"
+            
+            if request.is_json:
+                return jsonify({"success": False, "error": error_msg}), 400
+            else:
+                return f"ERROR: {error_msg}", 400
+    
+    return render_template("form2.html")
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
+
+
+____________________________________________________________________________________________
+
+
+from datetime import datetime
+from typing import Optional
+
+from flask import Flask, jsonify, redirect, render_template, request
+from flask_sqlalchemy import SQLAlchemy
+
+# My app
+app = Flask(__name__)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
+
+
+# Data class(not the same thing) ~ row of data
+class Task(db.Model):
+    id: int = db.Column(db.Integer, primary_key=True)
+    name: str = db.Column(db.String(50), nullable=False)
+    email: str = db.Column(db.String(120), unique=True, nullable=False)
+    message: Optional[str] = db.Column(
+        db.Text, nullable=True
+    )  # good for longer free text
+    complete: int = db.Column(db.Integer, default=0)
+    created: datetime = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"Request {self.id}"
+
+
+# Routes to pages
+@app.route("/", methods=["POST", "GET"])
+def index():
+    if request.method == "POST":
+        print(Task)
+        # Handle JSON POST from JS
+        if request.is_json:
+            data = request.get_json()
+            name = data.get("name", "")
+            email = data.get("email", "")
+            message = data.get("message", "")
+
+        else:
+            # fallback for normal HTML form POST
+            name = request.form.get("name", "")
+            email = request.form.get("email", "")
+            message = request.form.get("message", "")
+
+        # Basic validation
+        if not name.strip() or not email.strip():
+            if request.is_json:
+                return jsonify(
+                    {"success": False, "error": "Name and email are required"}
+                ), 400
+            else:
+                return "Error: Name and email are required", 400
+
+        # Creating a new task and assigning values, Data normalization
+        new_task = Task()
+        new_task.name = name.strip()
+        new_task.email = email.strip().lower()  # normalize email
+        new_task.message = message.strip() if message else None
+
+        try:
+            db.session.add(new_task)
+            db.session.commit()
+            return redirect("/")
+
+            # Return appropriate response
+            if request.is_json:
+                return jsonify(
+                    {
+                        "success": True,
+                        "message": "Data submitted successfully",
+                        "data": {
+                            "id": new_task.id,
+                            "name": new_task.name,
+                            "email": new_task.email,
+                            "created": new_task.created.isoformat(),
+                        },
+                    }
+                )
+            else:
+                return redirect("/")
+
+        except Exception as e:
+            print(f"ERROR: {e}")
+            error_msg = str(e)
+
+            # Handle specific database errors
+            if "UNIQUE constraint failed" in error_msg:
+                error_msg = "This email address is already registered"
+
+            if request.is_json:
+                return jsonify({"success": False, "error": error_msg}), 400
+            else:
+                return f"ERROR: {error_msg}", 400
+
+    return render_template("form2.html")
+
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
+
+
+____________________________________________________________________________________________
+
+
+from datetime import datetime
+
+from flask import Flask, jsonify, redirect, render_template, request
+from flask_sqlalchemy import SQLAlchemy
+
+# My app
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
+
+# Data class(not the same thing) ~ row of data
+
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    message = db.Column(db.Text, nullable=True)  # good for longer free text
+    complete = db.Column(db.Integer, default=0)
+    created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"Request {self.id}"
+
+
+# Routes to pages
+
+
+@app.route("/", methods=["POST", "GET"])
+def index():
+    if request.method == "POST":
+        # DEBUG: Let's see what's happening
+        print(f"Content-Type: {request.headers.get('Content-Type')}")
+        print(f"request.is_json: {request.is_json}")
+        print(f"request.content_type: {request.content_type}")
+
+        # Handle JSON POST from JS
+        if request.is_json:
+            print("Taking JSON path")
+            data = request.get_json()
+            name = data.get("name", "")
+            email = data.get("email", "")
+            message = data.get("message", "")
+        else:
+            print("Taking HTML form path")
+            # fallback for normal HTML form POST
+            name = request.form.get("name", "")
+            email = request.form.get("email", "")
+            message = request.form.get("message", "")
+
+        print(f"Extracted data - name: {name}, email: {email}, message: {message}")
+
+        # Basic validation
+        if not name.strip() or not email.strip():
+            print("Validation failed")
+            if request.is_json:
+                return jsonify(
+                    {"success": False, "error": "Name and email are required"}
+                ), 400
+            else:
+                return "Error: Name and email are required", 400
+
+        new_task = Task()
+        new_task.name = name.strip()
+        new_task.email = email.strip().lower()  # normalize email
+        new_task.message = message.strip() if message else None
+
+        try:
+            db.session.add(new_task)
+            db.session.commit()
+            print("Database commit successful")
+
+            # Return appropriate response based on request type
+            if request.is_json:
+                print("Returning JSON success response")
+                return jsonify(
+                    {
+                        "success": True,
+                        "message": "Data submitted successfully",
+                        "data": {
+                            "id": new_task.id,
+                            "name": new_task.name,
+                            "email": new_task.email,
+                            "created": new_task.created.isoformat(),
+                        },
+                    }
+                )
+            else:
+                print("Returning redirect")
+                return redirect("/")
+
+        except Exception as e:
+            print(f"ERROR: {e}")
+            error_msg = str(e)
+
+            # Handle specific database errors
+            if "UNIQUE constraint failed" in error_msg:
+                error_msg = "This email address is already registered"
+
+            if request.is_json:
+                print("Returning JSON error response")
+                return jsonify({"success": False, "error": error_msg}), 400
+            else:
+                print("Returning HTML error")
+                return f"ERROR: {error_msg}", 400
+
+    return render_template("form2.html")
+
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
+
