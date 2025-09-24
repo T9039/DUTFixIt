@@ -1,100 +1,87 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Form demo with Tailwind</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- TailwindCSS 3.4.17 CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body
-    class="bg-gradient-to-b from-gray-900 to-gray-800 text-white font-sans min-h-screen flex items-center justify-center"
-  >
-    <main class="w-full max-w-lg p-6 bg-gray-900/80 rounded-xl shadow-lg">
-      <h1 class="text-2xl font-bold mb-4 text-center">
-        Demo Form (POST via JS)
-      </h1>
+{% extends 'base.html' %} {% block head %}
+<title>Form demo with Tailwind</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- TailwindCSS 3.4.17 CDN -->
 
-      <form id="demo-form" class="space-y-4" onsubmit="return false;">
-        <div>
-          <label class="block text-gray-300 mb-1">Name</label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            placeholder="Your name"
-            class="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+{% endblock %} {% block body %}
 
-        <div>
-          <label class="block text-gray-300 mb-1">Email</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            placeholder="email@example.com"
-            class="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+<main class="w-full max-w-lg p-6 bg-gray-900/80 rounded-xl shadow-lg">
+  <h1 class="text-2xl font-bold mb-4 text-center">Demo Form (POST via JS)</h1>
 
-        <div>
-          <label class="block text-gray-300 mb-1">Message</label>
-          <textarea
-            name="message"
-            id="message"
-            placeholder="Write something..."
-            rows="6"
-            class="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-          ></textarea>
-        </div>
+  <form id="demo-form" class="space-y-4" onsubmit="return false;">
+    <div>
+      <label class="block text-gray-300 mb-1">Name</label>
+      <input
+        type="text"
+        name="name"
+        id="name"
+        placeholder="Your name"
+        class="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
 
-        <div class="flex gap-3">
-          <button
-            id="submit-btn"
-            type="button"
-            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition"
-          >
-            Send
-          </button>
-          <button
-            id="clear-btn"
-            type="button"
-            class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-2 px-4 rounded-md transition border border-gray-600"
-          >
-            Clear
-          </button>
-        </div>
-      </form>
+    <div>
+      <label class="block text-gray-300 mb-1">Email</label>
+      <input
+        type="email"
+        name="email"
+        id="email"
+        placeholder="email@example.com"
+        class="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
 
-      <section
-        id="result"
-        class="mt-6 p-4 rounded-md bg-gray-800 border border-gray-700 hidden"
+    <div>
+      <label class="block text-gray-300 mb-1">Message</label>
+      <textarea
+        name="message"
+        id="message"
+        placeholder="Write something..."
+        rows="6"
+        class="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+      ></textarea>
+    </div>
+
+    <div class="flex gap-3">
+      <button
+        id="submit-btn"
+        type="button"
+        class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition"
       >
-        <h2 class="text-lg font-semibold mb-2">Server response</h2>
-        <pre
-          id="responseJson"
-          class="whitespace-pre-wrap break-words text-blue-300"
-        ></pre>
-      </section>
+        Send
+      </button>
+      <button
+        id="clear-btn"
+        type="button"
+        class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-2 px-4 rounded-md transition border border-gray-600"
+      >
+        Clear
+      </button>
+    </div>
+  </form>
 
-      <section class="mt-4 text-gray-400 text-sm space-x-2">
-        <a
-          href="/submissions"
-          target="_blank"
-          class="hover:text-white underline"
-          >View submissions (JSON)</a
-        >
-        <span>·</span>
-        <a
-          href="/download/csv"
-          target="_blank"
-          class="hover:text-white underline"
-          >Download CSV</a
-        >
-      </section>
-    </main>
+  <section
+    id="result"
+    class="mt-6 p-4 rounded-md bg-gray-800 border border-gray-700 hidden"
+  >
+    <h2 class="text-lg font-semibold mb-2">Server response</h2>
+    <pre
+      id="responseJson"
+      class="whitespace-pre-wrap break-words text-blue-300"
+    ></pre>
+  </section>
 
-    <!-- <script src="../static/js/app.js"></script> -->
-  </body>
-</html>
+  <section class="mt-4 text-gray-400 text-sm space-x-2">
+    <a href="/submissions" target="_blank" class="hover:text-white underline"
+      >View submissions (JSON)</a
+    >
+    <span>·</span>
+    <a href="/download/csv" target="_blank" class="hover:text-white underline"
+      >Download CSV</a
+    >
+  </section>
+</main>
+
+<script src="/static/js/app.js"></script>
+
+{%endblock %}

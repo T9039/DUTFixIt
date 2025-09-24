@@ -86,7 +86,7 @@ def index():
             else:
                 return f"ERROR: {error_msg}", 400
 
-    return render_template("form2.html")
+    return render_template("form.html")
 
 
 if __name__ == "__main__":
