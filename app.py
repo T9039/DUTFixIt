@@ -89,6 +89,16 @@ def index():
     return render_template("form.html")
 
 
+@app.route("/signin", methods=["POST", "GET"])
+def signin():
+    return render_template("signin.html")
+
+
+@app.route("/signup", methods=["POST", "GET"])
+def signup():
+    return render_template("signup.html")
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
