@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fix IT DUT - Responsive Sign Up</title>
+  <link rel="stylesheet" href="sign-up.css">
+</head>
+<body>
+  
+  <main class="mobile-container" role="main" aria-label="Mobile/Tablet sign up form">
+    <h1><span class="fix">Fix IT </span><span class="d">D</span><span class="u">U</span><span class="t">T</span></h1>
+    <div class="tagline">Better maintenance, Smoother Campus.</div>
+    <form class="mobile-form" id="mobileSignUpForm" action="Sign in (DESKTOP).html" method="get">
+      <h2>Sign Up</h2>
+      <input type="email" placeholder="Email" required />
+      <select required>
+        <option value="" disabled selected>choose role...</option>
+        <option>Student</option>
+        <option>Staff</option>
+      </select>
+      <input type="password" id="mobilePassword" placeholder="Password" required />
+<input type="password" id="mobileConfirmPassword" placeholder="Confirm Password" required />
+      <button type="submit">create</button>
+    </form>
+    <!-- Value Cards block for mobile/tablet -->
+    <div class="value-cards mobile-value-cards">
+      <div class="value-card accountability">
+        <img src="accountability.png" alt="Accountability" />
+        <span>accountability.</span>
+      </div>
+      <div class="value-card transparency">
+        <img src="Transperancy.png" alt="Transparency" />
+        <span>transparency.</span>
+      </div>
+      <div class="value-card honesty">
+        <img src="honesty.png" alt="Honesty" />
+        <span>honesty.</span>
+      </div>
+    </div>
+  </main>
+
+  <section class="desktop-container" role="main" aria-label="Desktop create account form">
+    <div class="desktop-left" aria-label="Brand and values">
+      <h1 class="desktop-logo">
+        Fix IT 
+        <span class="d">D</span><span class="u">U</span><span class="t">T</span>
+      </h1>
+      <div class="desktop-tagline">Better Maintenance, Smoother Campus.</div>
+      <div class="value-cards">
+        <div class="value-card accountability">
+          <img src="accountability.png" alt="Accountability" />
+          <span>accountability.</span>
+        </div>
+        <div class="value-card transparency">
+          <img src="Transperancy.png" alt="Transparency" />
+          <span>transparency.</span>
+        </div>
+        <div class="value-card honesty">
+          <img src="honesty.png" alt="Honesty" />
+          <span>honesty.</span>
+        </div>
+      </div>
+    </div>
+    <div class="desktop-right">
+      <h2>Sign Up</h2>
+      <form class="desktop-form" id="desktopSignUpForm" action="Sign in (DESKTOP).html" method="get">
+        <input type="email" placeholder="Email" required />
+        <select required>
+          <option value="" disabled selected>choose role...</option>
+          <option>Student</option>
+          
+          <option>Staff</option>
+  
+        </select>
+       <input type="password" id="desktopPassword" placeholder="Password" required />
+<input type="password" id="desktopConfirmPassword" placeholder="Confirm Password" required />
+        <button type="submit">create</button>
+      </form>
+    </div>
+  </section>
+<script>
+function isValidDUTEmail(email) {
+  return /^[a-zA-Z0-9._%+-]+@(dut\.ac\.za|dut4life\.ac\.za)$/.test(email);
+}
+
+function attachValidation(formId, passwordId, confirmId) {
+  const form = document.getElementById(formId);
+  if (!form) return;
+  const emailInput = form.querySelector('input[type="email"]');
+  const passwordInput = document.getElementById(passwordId);
+  const confirmPasswordInput = document.getElementById(confirmId);
+  form.addEventListener("submit", function(e) {
+    // Email validation
+    if (!isValidDUTEmail(emailInput.value.trim())) {
+      e.preventDefault();
+      alert("Please use a valid DUT email ending with @dut.ac.za or @dut4life.ac.za.");
+      emailInput.focus();
+      return;
+    }
+    // Password match validation
+    if (passwordInput.value !== confirmPasswordInput.value) {
+      e.preventDefault();
+      alert("Passwords do not match. Please check and try again.");
+      confirmPasswordInput.focus();
+      return;
+    }
+  });
+}
+
+// Mobile form: IDs = mobilePassword, mobileConfirmPassword
+attachValidation("mobileSignUpForm", "mobilePassword", "mobileConfirmPassword");
+
+// Desktop form: IDs = desktopPassword, desktopConfirmPassword
+attachValidation("desktopSignUpForm", "desktopPassword", "desktopConfirmPassword");
+</script>
+</body>
+</html>
