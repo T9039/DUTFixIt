@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fix IT DUT</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
+        padding: 1rem;
+        background: linear-gradient(120deg, #c7d2fe 0%, #e0e7ff 100%);
+        position: relative;
+        overflow-x: hidden;
+      }
+      .bg-shape {
+        position: absolute;
+        top: -150px;
+        left: -150px;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.35;
+        filter: blur(20px);
+        width: 100vw;
+        height: 100vh;
+        background:
+          radial-gradient(circle at 20% 30%, #818cf8 0%, transparent 70%),
+          radial-gradient(circle at 80% 70%, #a5b4fc 0%, transparent 70%);
+      }
+      .container,
+      .mobile-form {
+        animation: fadein 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+      }
+      @keyframes fadein {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .container {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        box-shadow: 0 6px 32px rgba(80, 80, 180, 0.13);
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3rem;
+        padding: 2.5rem;
+        min-height: 550px;
+        position: relative;
+        z-index: 1;
+      }
+      .left {
+        flex: 1 1 45%;
+        min-width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 1rem;
+      }
+      .fixit-logo {
+        font-weight: 900;
+        font-size: 2.8rem;
+        user-select: none;
+        cursor: pointer;
+        transition:
+          transform 0.2s cubic-bezier(0.36, 0.07, 0.19, 0.97),
+          box-shadow 0.2s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        display: inline-block;
+        letter-spacing: -0.01em;
+        outline: none;
+      }
+      .fixit-logo .fix {
+        color: #222;
+      }
+      .fixit-logo .d {
+        color: #154734;
+      }
+      .fixit-logo .u {
+        color: #8a2be2;
+      }
+      .fixit-logo .t {
+        color: #aad5d7;
+      }
+      .fixit-logo:hover,
+      .fixit-logo:focus {
+        transform: scale(1.09) rotate(-2deg);
+        box-shadow: 0 4px 24px #8a2be2aa;
+        text-shadow:
+          0 1px 8px #15473444,
+          0 1px 4px #8a2be233;
+      }
+      .subtitle {
+        font-weight: 600;
+        color: #6366f1;
+        font-size: 1.25rem;
+        user-select: none;
+        margin: 0;
+        text-align: center;
+        max-width: 600px;
+        letter-spacing: 0.01em;
+      }
+      .images-container {
+        display: flex;
+        gap: 1.75rem;
+        margin-top: 2rem;
+        justify-content: center;
+        align-items: center;
+        max-width: 600px;
+      }
+      .image-box {
+        flex: 1;
+        max-width: 8rem;
+        aspect-ratio: 1;
+        border-radius: 14px;
+        box-shadow: 0 0 14px #6366f122;
+        overflow: hidden;
+        background: white;
+        transition:
+          transform 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97),
+          box-shadow 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        will-change: transform;
+      }
+      .image-box:hover {
+        transform: scale(1.09) rotate(-2deg);
+        box-shadow: 0 8px 32px #6366f133;
+        z-index: 2;
+      }
+      .image-box img {
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+        user-select: none;
+        transition: filter 0.2s;
+      }
+      .right {
+        flex: 1 1 300px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 0 24px #6366f122;
+        padding: 2rem;
+        max-width: 360px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+      .right h2 {
+        text-align: center;
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin: 0 0 0.8rem 0;
+        color: #3730a3;
+        user-select: none;
+      }
+      .right p.subtitle {
+        text-align: center;
+        color: #818cf8;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+        user-select: none;
+      }
+      .input-group {
+        position: relative;
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+      .input-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6366f1;
+        opacity: 0.7;
+        pointer-events: none;
+        z-index: 2;
+      }
+      form input[type="email"],
+      form input[type="password"] {
+        width: 100%;
+        padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+        border: none;
+        border-radius: 8px;
+        background: #eef2ff;
+        font-size: 1rem;
+        transition:
+          background-color 0.15s,
+          box-shadow 0.15s;
+        outline: none;
+        box-shadow: 0 1px 2px #6366f110;
+      }
+      form input[type="email"]:focus,
+      form input[type="password"]:focus {
+        background-color: #fff;
+        box-shadow: 0 0 7px 2px #6366f122;
+      }
+      .error-message {
+        color: #dc2626;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        display: none;
+        text-align: left;
+      }
+      button {
+        background-color: #6366f1;
+        color: white;
+        font-weight: 700;
+        padding: 0.7rem 0;
+        width: 100%;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.08rem;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+        margin-top: 0.5rem;
+        box-shadow: 0 2px 8px #6366f122;
+      }
+      button:active {
+        transform: scale(0.97);
+        background-color: #3730a3;
+      }
+      button:hover {
+        background-color: #818cf8;
+      }
+      .forgot-button {
+        background: none;
+        border: none;
+        color: #6366f1;
+        text-decoration: underline;
+        font-weight: 600;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+        align-self: flex-start;
+        padding: 0;
+        font-size: 0.97rem;
+        user-select: none;
+        outline: none;
+      }
+      .register-link {
+        text-align: center;
+        margin-top: 2.5rem;
+        color: #6366f1;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 600;
+        user-select: none;
+        font-size: 1.06rem;
+        letter-spacing: 0.01em;
+      }
+      .mobile-container,
+      .mobile-value-cards {
+        display: none;
+      }
+      @media (max-width: 800px) {
+        body {
+          padding: 0;
+        }
+        .container {
+          display: none !important;
+        }
+        .fixit-logo {
+          font-size: 2.1rem;
+        }
+        .mobile-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-height: 100vh;
+          padding: 20px;
+          text-align: center;
+          background: linear-gradient(120deg, #c7d2fe 0%, #e0e7ff 100%);
+          animation: fadein 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        .mobile-form {
+          background: rgba(255, 255, 255, 0.97);
+          border-radius: 18px;
+          padding: 30px 20px 32px 20px;
+          width: 100%;
+          max-width: 420px;
+          box-shadow: 0 6px 32px rgba(80, 80, 180, 0.13);
+          text-align: left;
+          margin-bottom: 20px;
+          position: relative;
+          z-index: 2;
+        }
+        .mobile-form h2 {
+          margin: 0 0 16px 0;
+          font-weight: 700;
+          font-size: 1.3rem;
+          color: #3730a3;
+        }
+        .input-group {
+          margin-bottom: 1.2rem;
+        }
+        .input-icon {
+          left: 12px;
+          top: 50%;
+          color: #6366f1;
+        }
+        .error-message {
+          font-size: 0.92rem;
+        }
+        .mobile-value-cards {
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+          justify-content: center;
+          width: 100%;
+          max-width: 420px;
+          margin-bottom: 10px;
+        }
+        .mobile-value-cards .value-card {
+          background: white;
+          border-radius: 10px;
+          width: 110px;
+          height: 120px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-end;
+          padding: 10px 8px 14px 8px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+          font-weight: 600;
+          font-size: 0.9rem;
+          user-select: none;
+        }
+        .mobile-value-cards .value-card img {
+          width: 54px;
+          height: 54px;
+          object-fit: contain;
+          margin-bottom: 10px;
+          border-radius: 7px;
+          border: 1px solid #eee;
+          background: #f8f8f8;
+        }
+        .mobile-value-cards .value-card.accountability span {
+          color: #154734;
+        }
+        .mobile-value-cards .value-card.transparency span {
+          color: #8a2be2;
+        }
+        .mobile-value-cards .value-card.honesty span {
+          color: #aad5d7;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-shape"></div>
+    <!-- Desktop/Tablet Split Layout -->
+    <div class="container" role="main">
+      <div class="left" role="region" aria-label="Branding and values">
+        <h1 class="fixit-logo" tabindex="0">
+          <span class="fix">Fix IT </span><span class="d">D</span
+          ><span class="u">U</span><span class="t">T</span>
+        </h1>
+        <p class="subtitle">Better Maintenance, Smoother Campus.</p>
+        <div class="images-container" aria-label="Values images">
+          <div class="image-box">
+            <img
+              src="https://www.dut.ac.za/wp-content/uploads/2023/04/Living-the-values-webpage-12.jpg"
+              alt="Living the Values"
+            />
+          </div>
+          <div class="image-box">
+            <img
+              src="https://tse1.mm.bing.net/th/id/OIP.VX6SIViqqympaVRBfSyZpAHaD4?rs=1&pid=ImgDetMain&o=7&rm=3"
+              alt="Accountability"
+            />
+          </div>
+          <div class="image-box">
+            <img
+              src="https://tse4.mm.bing.net/th/id/OIP.isrOqF66q9wz8l1k6jNPQAHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
+              alt="Transparency"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="right" role="region" aria-label="User sign in form">
+        <h2>Sign In</h2>
+        <p class="subtitle">Use your DUT credentials</p>
+        <form id="loginForm">
+          <label for="email">Email</label>
+          <div class="input-group">
+            <span class="input-icon">
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M2 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
+                <rect x="2" y="6" width="16" height="12" rx="2" />
+                <path d="M2 6l8 6 8-6" />
+              </svg>
+            </span>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="username"
+            />
+          </div>
+          <div class="error-message" id="desktopEmailError"></div>
+          <label for="password">Password</label>
+          <div class="input-group">
+            <span class="input-icon">
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="6" y="8" width="8" height="8" rx="4" />
+                <path d="M12 12v2" />
+                <circle cx="10" cy="10" r="4" />
+              </svg>
+            </span>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+            />
+          </div>
+          <div class="error-message" id="desktopPasswordError"></div>
+          <button type="button" class="forgot-button" id="forgotPasswordBtn">
+            Forgot password?
+          </button>
+          <button type="submit" aria-label="Sign in">Sign in</button>
+        </form>
+        <p class="register-link" id="registerLink">
+          <a href="sign-up.html" aria-label="Go to sign up page"
+            >Don't have an account?</a
+          >
+        </p>
+      </div>
+    </div>
+    <!-- Mobile/Tablet stacked layout -->
+    <main
+      class="mobile-container"
+      role="main"
+      aria-label="Mobile/Tablet sign in form"
+    >
+      <h1 class="fixit-logo" tabindex="0">
+        <span class="fix">Fix IT </span><span class="d">D</span
+        ><span class="u">U</span><span class="t">T</span>
+      </h1>
+      <div class="tagline">Better maintenance, Smoother Campus.</div>
+      <form
+        class="mobile-form"
+        id="mobileSignInForm"
+        action="dashboard.html"
+        method="get"
+      >
+        <h2>Sign In</h2>
+        <div class="input-group">
+          <span class="input-icon">
+            <svg
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M2 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
+              <rect x="2" y="6" width="16" height="12" rx="2" />
+              <path d="M2 6l8 6 8-6" />
+            </svg>
+          </span>
+          <input
+            type="email"
+            id="mobileEmail"
+            name="email"
+            placeholder="Email"
+            required
+            autocomplete="username"
+          />
+          <div class="error-message" id="mobileEmailError"></div>
+        </div>
+        <div class="input-group">
+          <span class="input-icon">
+            <svg
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="6" y="8" width="8" height="8" rx="4" />
+              <path d="M12 12v2" />
+              <circle cx="10" cy="10" r="4" />
+            </svg>
+          </span>
+          <input
+            type="password"
+            id="mobilePassword"
+            name="password"
+            placeholder="Password"
+            required
+            autocomplete="current-password"
+          />
+          <div class="error-message" id="mobilePasswordError"></div>
+        </div>
+        <button type="submit">Sign in</button>
+      </form>
+      <div class="mobile-value-cards">
+        <div class="value-card accountability">
+          <img src="accountability.png" alt="Accountability" />
+          <span>accountability.</span>
+        </div>
+        <div class="value-card transparency">
+          <img src="Transperancy.png" alt="Transparency" />
+          <span>transparency.</span>
+        </div>
+        <div class="value-card honesty">
+          <img src="honesty.png" alt="Honesty" />
+          <span>honesty.</span>
+        </div>
+      </div>
+    </main>
+    <script>
+      // Desktop/Tablet form validation
+      document.getElementById("loginForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const email = e.target.email.value.trim();
+        const password = e.target.password.value;
+        const emailError = document.getElementById("desktopEmailError");
+        const passwordError = document.getElementById("desktopPasswordError");
+        emailError.style.display = "none";
+        passwordError.style.display = "none";
+        let valid = true;
+        const dutEmailPattern = /^[a-zA-Z0-9._%+-]+@dut(4life)?\.ac\.za$/;
+        if (!dutEmailPattern.test(email)) {
+          emailError.textContent = "Please enter a valid DUT email address.";
+          emailError.style.display = "block";
+          valid = false;
+        }
+        if (!email) {
+          emailError.textContent = "Email is required.";
+          emailError.style.display = "block";
+          valid = false;
+        }
+        if (!password) {
+          passwordError.textContent = "Password is required.";
+          passwordError.style.display = "block";
+          valid = false;
+        }
+        if (valid) {
+          window.location.href = "dashboard.html";
+        }
+      });
+      document
+        .getElementById("registerLink")
+        .addEventListener("keypress", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            window.location.href = "sign-up.html";
+          }
+        });
+      document
+        .getElementById("forgotPasswordBtn")
+        .addEventListener("click", () => {
+          alert("Redirecting to password recovery...");
+        });
+      // Mobile/Tablet form validation
+      document
+        .getElementById("mobileSignInForm")
+        .addEventListener("submit", function (e) {
+          const emailInput = document.getElementById("mobileEmail");
+          const passwordInput = document.getElementById("mobilePassword");
+          const emailError = document.getElementById("mobileEmailError");
+          const passwordError = document.getElementById("mobilePasswordError");
+          emailError.style.display = "none";
+          passwordError.style.display = "none";
+          let valid = true;
+          const dutEmailPattern = /^[a-zA-Z0-9._%+-]+@dut(4life)?\.ac\.za$/;
+          if (!dutEmailPattern.test(emailInput.value.trim())) {
+            emailError.textContent = "Please enter a valid DUT email address.";
+            emailError.style.display = "block";
+            emailInput.focus();
+            valid = false;
+          }
+          if (!emailInput.value.trim()) {
+            emailError.textContent = "Email is required.";
+            emailError.style.display = "block";
+            emailInput.focus();
+            valid = false;
+          }
+          if (!passwordInput.value) {
+            passwordError.textContent = "Password is required.";
+            passwordError.style.display = "block";
+            passwordInput.focus();
+            valid = false;
+          }
+          if (!valid) e.preventDefault();
+          // No need for window.location.href since form action already set to dashboard.html
+        });
+
+      // Logo tap/click bounce effect (for desktop & mobile)
+      document.querySelectorAll(".fixit-logo").forEach((logo) => {
+        logo.addEventListener(
+          "mousedown",
+          () => (logo.style.transform = "scale(0.96) rotate(-1deg)"),
+        );
+        logo.addEventListener("mouseup", () => (logo.style.transform = ""));
+        logo.addEventListener("mouseleave", () => (logo.style.transform = ""));
+        logo.addEventListener(
+          "touchstart",
+          () => (logo.style.transform = "scale(0.96) rotate(-1deg)"),
+        );
+        logo.addEventListener("touchend", () => (logo.style.transform = ""));
+      });
+    </script>
+    <script>
+      // <![CDATA[  <-- For SVG support
+      if ("WebSocket" in window) {
+        (function () {
+          function refreshCSS() {
+            var sheets = [].slice.call(document.getElementsByTagName("link"));
+            var head = document.getElementsByTagName("head")[0];
+            for (var i = 0; i < sheets.length; ++i) {
+              var elem = sheets[i];
+              var parent = elem.parentElement || head;
+              parent.removeChild(elem);
+              var rel = elem.rel;
+              if (
+                (elem.href && typeof rel != "string") ||
+                rel.length == 0 ||
+                rel.toLowerCase() == "stylesheet"
+              ) {
+                var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, "");
+                elem.href =
+                  url +
+                  (url.indexOf("?") >= 0 ? "&" : "?") +
+                  "_cacheOverride=" +
+                  new Date().valueOf();
+              }
+              parent.appendChild(elem);
+            }
+          }
+          var protocol =
+            window.location.protocol === "http:" ? "ws://" : "wss://";
+          var address =
+            protocol + window.location.host + window.location.pathname + "/ws";
+          var socket = new WebSocket(address);
+          socket.onmessage = function (msg) {
+            if (msg.data == "reload") window.location.reload();
+            else if (msg.data == "refreshcss") refreshCSS();
+          };
+          if (
+            sessionStorage &&
+            !sessionStorage.getItem("IsThisFirstTime_Log_From_LiveServer")
+          ) {
+            console.log("Live reload enabled.");
+            sessionStorage.setItem("IsThisFirstTime_Log_From_LiveServer", true);
+          }
+        })();
+      } else {
+        console.error(
+          "Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.",
+        );
+      }
+      // ]]>
+    </script>
+  </body>
+</html>
