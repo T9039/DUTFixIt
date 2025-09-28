@@ -1,283 +1,158 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DUT Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      background: linear-gradient(120deg, #e0e7ff 0%, #c7d2fe 100%);
-      min-height: 100vh;
-      transition: background 0.5s;
-    }
-    .dashboard-shape {
-      position: fixed;
-      top: -120px; left: -120px; right: 0; bottom: 0;
-      z-index: 0;
-      pointer-events: none;
-      opacity: 0.22;
-      filter: blur(40px);
-      width: 100vw; height: 100vh;
-      background: radial-gradient(circle at 25% 25%, #6366f1 0%, transparent 70%), radial-gradient(circle at 75% 75%, #818cf8 0%, transparent 70%);
-    }
-    .logo-box {
-      transition: transform 0.22s cubic-bezier(.36,.07,.19,.97), box-shadow 0.22s cubic-bezier(.36,.07,.19,.97);
-      cursor: pointer;
-    }
-    .logo-box:hover, .logo-box:focus {
-      transform: scale(1.08) rotate(-2deg);
-      box-shadow: 0 4px 32px #6366f1bb;
-    }
-    .dashboard-table-animate tr {
-      transition: box-shadow 0.18s, transform 0.18s, background 0.18s;
-    }
-    .dashboard-table-animate tr:hover {
-      background: #e0e7ff !important;
-      box-shadow: 0 2px 14px #6366f122;
-      transform: scale(1.01);
-      z-index: 2;
-    }
-    .card-animate {
-      transition: box-shadow 0.18s, transform 0.18s, background 0.18s;
-    }
-    .card-animate:hover {
-      box-shadow: 0 8px 24px #6366f122;
-      transform: scale(1.03) rotate(-1deg);
-      background: #e0e7ff;
-    }
-    .fade-in {
-      animation: fadeInUp 0.7s cubic-bezier(.36,.07,.19,.97);
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(18px);}
-      to { opacity: 1; transform: translateY(0);}
-    }
-    /* Top Right Icon Animation */
-    .icon-btn {
-      transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
-      outline: none;
-      border-radius: 0.5rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .icon-btn:hover, .icon-btn:focus {
-      transform: scale(1.17);
-      box-shadow: 0 2px 14px #6366f155;
-      background: #e0e7ff44;
-    }
-    .icon-btn:active {
-      transform: scale(0.93);
-    }
-    .ripple-effect {
-      position: absolute;
-      background: #a5b4fc44;
-      border-radius: 50%;
-      pointer-events: none;
-      width: 36px;
-      height: 36px;
-      opacity: 0.7;
-      z-index: 999;
-      transform: scale(0);
-      transition: transform 0.25s, opacity 0.45s;
-    }
-  </style>
-</head>
-<body class="bg-white font-sans">
-  <div class="dashboard-shape"></div>
-  <header class="bg-indigo-500 flex items-center justify-between px-6 py-4">
-    <div class="flex items-center gap-3 logo-box" tabindex="0">
-      <img src="dut.png" alt="DUT Logo" class="h-8 w-auto transition-all duration-200" />
-      <span class="font-extrabold text-xl text-white tracking-tight">
-        Fix IT <span style="color:#154734;">D</span><span style="color:#8a2be2;">U</span><span style="color:#aad5d7;">T</span>
-      </span>
-    </div>
-    <nav class="flex items-center gap-6 text-white text-lg">
-      <button aria-label="Home" title="Home" class="icon-btn hover:text-indigo-200 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-          <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" />
-        </svg>
-      </button>
-      <button aria-label="Notifications" title="Notifications" class="icon-btn hover:text-indigo-200 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-          <path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z" clip-rule="evenodd" />
-        </svg>
-      </button>
-      <a href="Profile(DESKTOP).html" aria-label="Profile" title="Profile" class="icon-btn hover:text-indigo-200 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clip-rule="evenodd" />
-        </svg>
-      </a>
-      <button id="logoutBtn" aria-label="Logout" title="Logout" class="icon-btn hover:text-indigo-200 flex items-center gap-1 transition-colors">
-        <span>Logout</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 11-4 0v-1m0-8V7a2 2 0 114 0v1" />
-        </svg>
-      </button>
-    </nav>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DUT Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="min-h-screen bg-gradient-to-br from-indigo-100 to-indigo-200 transition-colors duration-500 font-sans"
+  >
+    <!-- blurred gradient background shape -->
+    <div
+      class="fixed top-[-120px] left-[-120px] right-0 bottom-0 w-screen h-screen opacity-20 blur-[40px] pointer-events-none z-0 bg-[radial-gradient(circle_at_25%_25%,#6366f1_0%,transparent_70%),radial-gradient(circle_at_75%_75%,#818cf8_0%,transparent_70%)]"
+    ></div>
 
-  <!-- MAIN UI BOX -->
-  <main class="max-w-5xl mx-auto mt-10 p-8 bg-gradient-to-br from-cyan-50 via-teal-100 to-blue-100 rounded-2xl shadow-lg fade-in">
-    <h1 class="text-3xl font-bold mb-6 select-none">Hello Suko 👋</h1>
-    <section>
-      <h2 class="text-xl font-semibold mb-4">Report Issue</h2>
-      
-      <!-- Desktop Table -->
-      <div class="overflow-x-auto rounded-xl bg-white shadow hidden md:block fade-in">
-        <div class="max-h-72 overflow-y-auto">
-          <table id="issuesTable" class="min-w-full text-left text-sm border-collapse dashboard-table-animate">
-            <thead class="bg-gray-300 sticky top-0">
-              <tr>
-                <th class="px-4 py-2">Ref No.</th>
-                <th class="px-4 py-2">Category</th>
-                <th class="px-4 py-2">Type</th>
-                <th class="px-4 py-2">Status</th>
-                <th class="px-4 py-2">Notes</th>
-                <th class="px-4 py-2">Date</th>
-                <th class="px-4 py-2">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- new rows will appear -->
-            </tbody>
-          </table>
-        </div>
+    <header class="bg-indigo-500 flex items-center justify-between px-6 py-4">
+      <div
+        class="flex items-center gap-3 cursor-pointer transition-transform duration-200 ease-out focus:outline-none"
+        tabindex="0"
+      >
+        <img src="dut.png" alt="DUT Logo" class="h-8 w-auto" />
+        <span class="font-extrabold text-xl text-white tracking-tight">
+          Fix IT <span class="text-[#154734]">D</span
+          ><span class="text-[#8a2be2]">U</span
+          ><span class="text-[#aad5d7]">T</span>
+        </span>
       </div>
-
-      <!-- Mobile/Tablet Cards -->
-      <div id="issuesCards" class="block md:hidden space-y-4 fade-in"></div>
-
-      <div class="flex justify-end">
-        <a href="report.html">
-          <button class="mt-6 px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition-colors card-animate">
-            Report Issue
-          </button>
+      <nav class="flex items-center gap-6 text-white text-lg">
+        <button
+          aria-label="Home"
+          title="Home"
+          class="icon-btn hover:text-indigo-200 transition"
+        >
+          <!-- icon -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+        <button
+          aria-label="Notifications"
+          title="Notifications"
+          class="icon-btn hover:text-indigo-200 transition"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+        <a
+          href="Profile(DESKTOP).html"
+          aria-label="Profile"
+          title="Profile"
+          class="icon-btn hover:text-indigo-200 transition"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </a>
-      </div>
-    </section>
-  </main>
+        <button
+          id="logoutBtn"
+          aria-label="Logout"
+          title="Logout"
+          class="icon-btn hover:text-indigo-200 flex items-center gap-1 transition"
+        >
+          <span>Logout</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            stroke="currentColor"
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 11-4 0v-1m0-8V7a2 2 0 114 0v1"
+            />
+          </svg>
+        </button>
+      </nav>
+    </header>
 
- <script>
-  const STORAGE_KEY = "dut_requests_v1";
-  const logoutBtn = document.getElementById('logoutBtn');
+    <main
+      class="max-w-5xl mx-auto mt-10 p-8 bg-gradient-to-br from-cyan-50 via-teal-100 to-blue-100 rounded-2xl shadow-lg animate-[fadeInUp_0.7s_cubic-bezier(.36,.07,.19,.97)]"
+    >
+      <h1 class="text-3xl font-bold mb-6 select-none">Hello Suko 👋</h1>
+      <section>
+        <h2 class="text-xl font-semibold mb-4">Report Issue</h2>
 
-  function statusColor(status) {
-    if (status === "pending") return "bg-gray-300 text-gray-700";
-    if (status === "in-progress") return "bg-yellow-200 text-yellow-800";
-    if (status === "done") return "bg-green-200 text-green-800";
-    return "bg-gray-100 text-gray-600";
-  }
-  // statusDot function removed - dots no longer shown
-
-  function loadRequests() {
-    const requests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    // Desktop table population
-    const tableBody = document.querySelector("#issuesTable tbody");
-    if (tableBody) {
-      tableBody.innerHTML = "";
-      requests.forEach(req => {
-        const row = document.createElement("tr");
-        row.classList.add("border", "border-gray-300");
-        row.innerHTML = `
-          <td class="px-4 py-2">${req.id}</td>
-          <td class="px-4 py-2">${req.category}</td>
-          <td class="px-4 py-2">${req.type}</td>
-          <td class="px-4 py-2">
-            <span class="inline-block px-2 py-1 rounded ${statusColor(req.status)} text-xs font-semibold">
-              ${req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-            </span>
-          </td>
-          <td class="px-4 py-2">${req.notes}</td>
-          <td class="px-4 py-2">${req.date}</td>
-          <td class="px-4 py-2">${req.time}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
-
-    // Mobile/Tablet card population
-    const cardsBox = document.getElementById("issuesCards");
-    if (cardsBox) {
-      cardsBox.innerHTML = "";
-      requests.forEach(req => {
-        const card = document.createElement("div");
-        card.className = "bg-white rounded-xl shadow p-4 flex flex-col card-animate";
-        card.innerHTML = `
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">Ref No.</span>
-            <span>${req.id}</span>
+        <!-- Desktop Table -->
+        <div class="overflow-x-auto rounded-xl bg-white shadow hidden md:block">
+          <div class="max-h-72 overflow-y-auto">
+            <table
+              id="issuesTable"
+              class="min-w-full text-left text-sm border-collapse"
+            >
+              <thead class="bg-gray-300 sticky top-0">
+                <tr>
+                  <th class="px-4 py-2">Ref No.</th>
+                  <th class="px-4 py-2">Category</th>
+                  <th class="px-4 py-2">Type</th>
+                  <th class="px-4 py-2">Status</th>
+                  <th class="px-4 py-2">Notes</th>
+                  <th class="px-4 py-2">Date</th>
+                  <th class="px-4 py-2">Time</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <div class="flex justify-between items-center mt-1">
-            <span class="font-semibold">Category</span>
-            <span>${req.category}</span>
-          </div>
-          <div class="flex justify-between items-center mt-1">
-            <span class="font-semibold">Type</span>
-            <span>${req.type}</span>
-          </div>
-          <div class="flex justify-between items-center mt-1">
-            <span class="font-semibold">Status</span>
-            <span>
-              <span class="px-2 py-1 rounded ${statusColor(req.status)} text-xs font-semibold">
-                ${req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-              </span>
-            </span>
-          </div>
-          <div class="flex justify-between items-center mt-1">
-            <span class="font-semibold">Notes</span>
-            <span>${req.notes}</span>
-          </div>
-          <div class="flex justify-between items-center mt-1">
-            <span class="font-semibold">Date</span>
-            <span>${req.date}</span>
-          </div>
-          <div class="flex justify-between items-center mt-1">
-            <span class="font-semibold">Time</span>
-            <span>${req.time}</span>
-          </div>
-        `;
-        cardsBox.appendChild(card);
-      });
-    }
-  }
+        </div>
 
-  window.onload = loadRequests;
+        <!-- Mobile/Tablet Cards -->
+        <div id="issuesCards" class="block md:hidden space-y-4"></div>
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('signedInEmail');
-      localStorage.removeItem('userProfile');
-      window.location.href = "Sign in (DESKTOP).html";
-    });
-  }
+        <div class="flex justify-end">
+          <a href="report">
+            <button
+              class="mt-6 px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
+            >
+              Report Issue
+            </button>
+          </a>
+        </div>
+      </section>
+    </main>
 
-  // Logo bounce effect (like sign-in page)
-  document.querySelectorAll('.logo-box').forEach(logo => {
-    logo.addEventListener('mousedown', () => logo.style.transform = 'scale(0.96) rotate(-1deg)');
-    logo.addEventListener('mouseup', () => logo.style.transform = '');
-    logo.addEventListener('mouseleave', () => logo.style.transform = '');
-    logo.addEventListener('touchstart', () => logo.style.transform = 'scale(0.96) rotate(-1deg)');
-    logo.addEventListener('touchend', () => logo.style.transform = '');
-  });
-
-  // Ripple effect for top right icon buttons
-  document.querySelectorAll('.icon-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      const ripple = document.createElement('span');
-      ripple.className = 'ripple-effect';
-      ripple.style.left = (e.offsetX - 18) + 'px';
-      ripple.style.top = (e.offsetY - 18) + 'px';
-      btn.appendChild(ripple);
-      setTimeout(() => {
-        ripple.style.transform = 'scale(1.5)';
-        ripple.style.opacity = '0';
-      }, 10);
-      setTimeout(() => {
-        ripple.remove();
-      }, 500);
-    });
-  });
-</script>
-</body>
+    <script src="static/js/dashboard.js"></script>
+  </body>
 </html>

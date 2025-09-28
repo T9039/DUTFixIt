@@ -5,116 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Report Issue - DUT</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        background: linear-gradient(120deg, #e0e7ff 0%, #c7d2fe 100%);
-        min-height: 100vh;
-        transition: background 0.5s;
-      }
-      .dashboard-shape {
-        position: fixed;
-        top: -120px;
-        left: -120px;
-        right: 0;
-        bottom: 0;
-        z-index: 0;
-        pointer-events: none;
-        opacity: 0.22;
-        filter: blur(40px);
-        width: 100vw;
-        height: 100vh;
-        background:
-          radial-gradient(circle at 25% 25%, #6366f1 0%, transparent 70%),
-          radial-gradient(circle at 75% 75%, #818cf8 0%, transparent 70%);
-      }
-      .logo-box {
-        transition:
-          transform 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97),
-          box-shadow 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-        cursor: pointer;
-      }
-      .logo-box:hover,
-      .logo-box:focus {
-        transform: scale(1.08) rotate(-2deg);
-        box-shadow: 0 4px 32px #6366f1bb;
-      }
-      .icon-btn {
-        transition:
-          transform 0.18s,
-          box-shadow 0.18s,
-          background 0.18s;
-        outline: none;
-        border-radius: 0.5rem;
-        position: relative;
-        overflow: hidden;
-      }
-      .icon-btn:hover,
-      .icon-btn:focus {
-        transform: scale(1.17);
-        box-shadow: 0 2px 14px #6366f155;
-        background: #e0e7ff44;
-      }
-      .icon-btn:active {
-        transform: scale(0.93);
-      }
-      .ripple-effect {
-        position: absolute;
-        background: #a5b4fc44;
-        border-radius: 50%;
-        pointer-events: none;
-        width: 36px;
-        height: 36px;
-        opacity: 0.7;
-        z-index: 999;
-        transform: scale(0);
-        transition:
-          transform 0.25s,
-          opacity 0.45s;
-      }
-      .fade-in {
-        animation: fadeInUp 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-      }
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(18px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .card-animate {
-        transition:
-          box-shadow 0.18s,
-          transform 0.18s,
-          background 0.18s;
-      }
-      .card-animate:hover {
-        box-shadow: 0 8px 24px #6366f122;
-        transform: scale(1.03) rotate(-1deg);
-        background: #e0e7ff;
-      }
-      .select-none {
-        user-select: none;
-      }
-    </style>
   </head>
-  <body class="bg-gray-100 font-sans">
-    <div class="dashboard-shape"></div>
-    <header class="bg-indigo-500 flex items-center justify-between px-6 py-4">
-      <div class="flex items-center gap-3 logo-box" tabindex="0">
-        <img
-          src="dut.png"
-          alt="DUT Logo"
-          class="h-8 w-auto transition-all duration-200"
-        />
+  <body
+    class="bg-gradient-to-br from-indigo-100 to-indigo-200 min-h-screen transition-colors duration-500 font-sans"
+  >
+    <!-- Background shape -->
+    <div
+      class="fixed inset-0 -top-32 -left-32 opacity-20 pointer-events-none blur-3xl w-screen h-screen bg-[radial-gradient(circle_at_25%_25%,#6366f1_0%,transparent_70%),radial-gradient(circle_at_75%_75%,#818cf8_0%,transparent_70%)]"
+    ></div>
+
+    <!-- Header -->
+    <header
+      class="bg-indigo-500 flex items-center justify-between px-6 py-4 relative z-10"
+    >
+      <div
+        class="flex items-center gap-3 transition-transform duration-200 cursor-pointer hover:scale-105 hover:-rotate-2 hover:shadow-lg"
+        tabindex="0"
+      >
+        <img src="static/img/dut.png" alt="DUT Logo" class="h-8 w-auto" />
         <span
           class="font-extrabold text-xl text-white tracking-tight select-none"
         >
-          Fix IT <span style="color: #154734">D</span
-          ><span style="color: #8a2be2">U</span
-          ><span style="color: #aad5d7">T</span>
+          Fix IT <span class="text-[#154734]">D</span
+          ><span class="text-[#8a2be2]">U</span
+          ><span class="text-[#aad5d7]">T</span>
         </span>
       </div>
       <nav class="flex items-center gap-6 text-white text-lg">
@@ -122,8 +36,9 @@
           href="dashboard.html"
           aria-label="Home"
           title="Home"
-          class="icon-btn hover:text-indigo-200 transition-colors"
+          class="p-2 rounded-md transition-transform duration-200 hover:scale-110 hover:text-indigo-200"
         >
+          <!-- Home icon -->
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -140,8 +55,9 @@
         <button
           aria-label="Notifications"
           title="Notifications"
-          class="icon-btn hover:text-indigo-200 transition-colors"
+          class="p-2 rounded-md transition-transform duration-200 hover:scale-110 hover:text-indigo-200"
         >
+          <!-- Bell -->
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -150,7 +66,11 @@
           >
             <path
               fill-rule="evenodd"
-              d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
+              d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 
+                 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 
+                 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 
+                 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6Z
+                 M8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
               clip-rule="evenodd"
             />
           </svg>
@@ -159,8 +79,9 @@
           href="Profile(DESKTOP).html"
           aria-label="Profile"
           title="Profile"
-          class="icon-btn hover:text-indigo-200 transition-colors"
+          class="p-2 rounded-md transition-transform duration-200 hover:scale-110 hover:text-indigo-200"
         >
+          <!-- Profile -->
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -169,7 +90,10 @@
           >
             <path
               fill-rule="evenodd"
-              d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z"
+              d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 
+                 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 
+                 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 
+                 4.793-2.11A5.99 5.99 0 0 0 10 12Z"
               clip-rule="evenodd"
             />
           </svg>
@@ -178,9 +102,10 @@
           id="logoutBtn"
           aria-label="Logout"
           title="Logout"
-          class="icon-btn hover:text-indigo-200 flex items-center gap-1 transition-colors"
+          class="flex items-center gap-1 p-2 rounded-md transition-transform duration-200 hover:scale-110 hover:text-indigo-200"
         >
           <span>Logout</span>
+          <!-- Logout icon -->
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -192,17 +117,23 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 11-4 0v-1m0-8V7a2 2 0 114 0v1"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 11-4 
+                 0v-1m0-8V7a2 2 0 114 0v1"
             />
           </svg>
         </button>
       </nav>
     </header>
 
-    <main class="max-w-4xl mx-auto mt-10 p-6 bg-gray-200 rounded-lg fade-in">
+    <!-- Main -->
+    <main
+      class="max-w-4xl mx-auto mt-10 p-6 bg-gray-200 rounded-lg animate-[fadeInUp_0.7s_cubic-bezier(.36,.07,.19,.97)]"
+    >
       <h1 class="text-xl font-bold mb-6 select-none">Report an Issue</h1>
+      <!-- form stays unchanged -->
 
       <form id="reportForm" class="space-y-6">
+        <!-- (all the form fields exactly like before) -->
         <div class="flex gap-6">
           <div class="flex-1">
             <label for="categorySelect" class="block mb-1 font-medium"
@@ -325,117 +256,7 @@
       </form>
     </main>
 
-    <script>
-      const STORAGE_KEY = "dut_requests_v1";
-      const logoutBtn = document.getElementById("logoutBtn");
-      const $ = (id) => document.getElementById(id);
-      function generateId() {
-        let lastRef = parseInt(
-          localStorage.getItem("dut_last_ref_no") || "0",
-          10,
-        );
-        let nextRef = lastRef + 1;
-        localStorage.setItem("dut_last_ref_no", nextRef);
-        return "#" + nextRef.toString().padStart(4, "0");
-      }
-      function saveRequests(arr) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-      }
-      function loadRequests() {
-        try {
-          return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        } catch {
-          return [];
-        }
-      }
-      $("categorySelect").addEventListener("change", (e) => {
-        const typeSel = $("typeSelect");
-        const groups = typeSel.querySelectorAll("optgroup");
-        groups.forEach((g) => (g.hidden = g.label !== e.target.value));
-        typeSel.value = "";
-        $("otherTypeInput").classList.add("hidden");
-      });
-      $("typeSelect").addEventListener("change", (e) => {
-        if (e.target.value === "Other")
-          $("otherTypeInput").classList.remove("hidden");
-        else $("otherTypeInput").classList.add("hidden");
-      });
-      $("reportForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        let category = $("categorySelect").value;
-        let type = $("typeSelect").value;
-        if (type === "Other")
-          type = $("otherTypeInput").value.trim() || "Other";
-        const campus = $("campusInput").value.trim();
-        const block = $("blockInput").value.trim();
-        const nearestClass = $("nearestClassInput").value.trim();
-        const description = $("descriptionInput").value.trim();
-        if (!category || !type || !description) {
-          alert("Please fill in required fields");
-          return;
-        }
-        const now = new Date();
-        const req = {
-          id: generateId(),
-          category,
-          type,
-          campus,
-          block,
-          nearestClass,
-          notes: description,
-          status: "pending",
-          date: now.toLocaleDateString("en-GB"),
-          time: now.toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        const arr = loadRequests();
-        arr.unshift(req);
-        saveRequests(arr);
-        window.location.href = "dashboard.html";
-      });
-
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-          localStorage.removeItem("signedInEmail");
-          localStorage.removeItem("userProfile");
-          window.location.href = "Sign in (DESKTOP).html";
-        });
-      }
-
-      // Logo bounce effect (like sign-in page/dashboard)
-      document.querySelectorAll(".logo-box").forEach((logo) => {
-        logo.addEventListener(
-          "mousedown",
-          () => (logo.style.transform = "scale(0.96) rotate(-1deg)"),
-        );
-        logo.addEventListener("mouseup", () => (logo.style.transform = ""));
-        logo.addEventListener("mouseleave", () => (logo.style.transform = ""));
-        logo.addEventListener(
-          "touchstart",
-          () => (logo.style.transform = "scale(0.96) rotate(-1deg)"),
-        );
-        logo.addEventListener("touchend", () => (logo.style.transform = ""));
-      });
-
-      // Ripple effect for top right icon buttons
-      document.querySelectorAll(".icon-btn").forEach((btn) => {
-        btn.addEventListener("click", function (e) {
-          const ripple = document.createElement("span");
-          ripple.className = "ripple-effect";
-          ripple.style.left = e.offsetX - 18 + "px";
-          ripple.style.top = e.offsetY - 18 + "px";
-          btn.appendChild(ripple);
-          setTimeout(() => {
-            ripple.style.transform = "scale(1.5)";
-            ripple.style.opacity = "0";
-          }, 10);
-          setTimeout(() => {
-            ripple.remove();
-          }, 500);
-        });
-      });
-    </script>
+    <!-- External script -->
+    <script src="static/js/report.js"></script>
   </body>
 </html>

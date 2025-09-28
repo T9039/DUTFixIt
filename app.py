@@ -89,6 +89,36 @@ def index():
     return render_template("form.html")
 
 
+@app.route("/sign-in", methods=["POST", "GET"])
+def sign_in():
+    return render_template("sign-in.html")
+
+
+@app.route("/sign-up", methods=["POST", "GET"])
+def sign_up():
+    return render_template("sign-up.html")
+
+
+@app.route("/report", methods=["POST", "GET"])
+def report():
+    return render_template("report.html")
+
+
+@app.route("/profile", methods=["POST", "GET"])
+def profile():
+    return render_template("profile.html")
+
+
+@app.route("/dashboard", methods=["POST", "GET"])
+def dashboard():
+    return render_template("dashboard.html")
+
+
+@app.route("/dashboarded", methods=["POST", "GET"])
+def dashboarded():
+    return render_template("dashboard(updated).html")
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
