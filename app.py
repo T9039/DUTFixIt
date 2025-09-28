@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 
 from email_validator import EmailNotValidError, validate_email
@@ -30,6 +31,13 @@ class User(db.Model):
     user_email = db.Column(db.String(120), unique=True, nullable=False)
     user_created = db.Column(db.DateTime, default=datetime.utcnow)
     user_password_hash = db.Column(db.String(255), nullable=False)
+
+    # NEW: role field
+    class UserRole(enum.Enum):
+        STUDENT = "Student"
+        STAFF = "Staff"
+
+    user_role = db.Column(db.Enum(UserRole), nullable=False)
 
     def __repr__(self):
         return f"User {self.user_id}"
@@ -141,56 +149,75 @@ def sign_in():
 @app.route("/sign-up", methods=["POST", "GET"])
 def sign_up():
     if request.method == "POST":
-        # Handle JSON POST from JS
+        # Detect JSON vs traditional form POST
         if request.is_json:
             data = request.get_json()
-            email = data.get("email", "")
+            email = data.get("email", "").strip().lower()
             password = data.get("password", "")
+            role = data.get("role", "")
         else:
-            # fallback for normal HTML form POST
-            email = request.form.get("email", "")
+            email = request.form.get("email", "").strip().lower()
             password = request.form.get("password", "")
+            role = request.form.get("role", "")
 
         # Basic validation
-        if not password.strip() or not email.strip():
+        if not email or not password or not role:
+            msg = "Email, password, and role are required."
             if request.is_json:
-                return jsonify(
-                    {"success": False, "error": "Email and Password are required"}
-                ), 400
+                return jsonify({"success": False, "message": msg}), 400
             else:
-                return "Error: Email and Password are required", 400
+                return msg, 400
 
-        new_user = User()
-        new_user.set_pass_hash(password)
-        new_user.user_email = email.strip().lower()  # normalize email
+        # Email format check
+        if not is_valid_dut_email(email):
+            msg = "Please use a valid DUT email (@dut.ac.za or @dut4life.ac.za)."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
 
+        # Role whitelist check
+        valid_roles = ["Student", "Staff"]
+        if role not in valid_roles:
+            msg = "Invalid role selected."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
+
+        # Check for existing email
+        if email_exists(email):
+            msg = "Email already registered."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 409
+            else:
+                return msg, 409
+
+        # All validations passed — create user
         try:
+            new_user = User()
+            new_user.user_email = email
+            new_user.user_role = role
+            new_user.set_pass_hash(password)
+
             db.session.add(new_user)
             db.session.commit()
 
             if request.is_json:
-                return jsonify(
-                    {
-                        "success": True,
-                    }
-                ), 201
+                return jsonify({"success": True}), 201
             else:
                 return redirect("/")
 
         except Exception as e:
-            print(f"ERROR: {e}")  # server log only
-
-            error_msg = (
-                "This email address is already registered"
-                if "UNIQUE constraint failed" in str(e)
-                else "An unexpected error occurred"
-            )
-
+            # Log full error on server, but return safe message to client
+            print(f"ERROR: {e}")
+            msg = "An unexpected error occurred. Please try again."
             if request.is_json:
-                return jsonify({"success": False, "message": error_msg}), 409
+                return jsonify({"success": False, "message": msg}), 500
             else:
-                return f"ERROR: {error_msg}", 409
+                return msg, 500
 
+    # GET request → render signup page
     return render_template("sign-up.html")
 
 
@@ -207,6 +234,13 @@ def profile():
 @app.route("/dashboard", methods=["POST", "GET"])
 def dashboard():
     return render_template("dashboard.html")
+
+
+@app.route("/reset-db")
+def reset_db():
+    db.drop_all()
+    db.create_all()
+    return "Database reset!"
 
 
 if __name__ == "__main__":
