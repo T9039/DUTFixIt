@@ -2,6 +2,56 @@ const STORAGE_KEY = "dut_requests_v1";
 const logoutBtn = document.getElementById("logoutBtn");
 const $ = (id) => document.getElementById(id);
 
+// ---- Campus/Block dropdown logic ----
+const blockOptions = {
+  Ritson: [
+    "Block A","Block B","Block C","Block D","Block E","Block F","Block G","Block H","Block I","Block J","Block K","Block L","Block M","Block N","Block O","Block P","Block Q","Block R","Block S","Block T","Block U","Block V","Open House Annexe","Canteen"
+  ],
+  Steve: [
+    "S1","S2","S3","S4","S5","S6","S7","S8","S9"
+  ],
+  "ML Sultan": [
+    "Block A","Block B","Block C","Block D","Block E","Block F","Block G","Block H","Block I","Block J","Block K","Block L","Block M"
+  ],
+  City: [
+    "Block A","Block B","Block C","Block D","Block E","Block F","Block G","Block H"
+  ],
+  Brickfield: [
+    "Block"
+  ],
+  Indumiso: [
+    "Block"
+  ],
+  Riverside: [
+    "Block"
+  ]
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+  const campusSelect = $("campusSelect");
+  const blockSelect = $("blockSelect");
+
+  function populateBlocks(campus) {
+    blockSelect.innerHTML = '<option value="" disabled selected>Select a block</option>';
+    if (blockOptions[campus]) {
+      for (const block of blockOptions[campus]) {
+        const opt = document.createElement("option");
+        opt.value = block;
+        opt.textContent = block;
+        blockSelect.appendChild(opt);
+      }
+    }
+  }
+
+  if (campusSelect) {
+    campusSelect.addEventListener("change", function () {
+      populateBlocks(campusSelect.value);
+    });
+  }
+});
+
+// ---- End campus/block dropdown logic ----
+
 function generateId() {
   let lastRef = parseInt(localStorage.getItem("dut_last_ref_no") || "0", 10);
   let nextRef = lastRef + 1;
@@ -44,8 +94,10 @@ $("reportForm").addEventListener("submit", (e) => {
   let type = $("typeSelect").value;
   if (type === "Other")
     type = $("otherTypeInput").value.trim() || "Other";
-  const campus = $("campusInput").value.trim();
-  const block = $("blockInput").value.trim();
+  // ---- USE SELECTS FOR CAMPUS/BLOCK ----
+  const campus = $("campusSelect") ? $("campusSelect").value : "";
+  const block = $("blockSelect") ? $("blockSelect").value : "";
+  // ---- END CHANGE ----
   const nearestClass = $("nearestClassInput").value.trim();
   const description = $("descriptionInput").value.trim();
   if (!category || !type || !description) {
@@ -83,7 +135,7 @@ if (logoutBtn) {
   });
 }
 
-// Logo bounce (unchanged)
+// Logo bounce 
 document.querySelectorAll(".logo-box").forEach((logo) => {
   logo.addEventListener("mousedown", () => (logo.style.transform = "scale(0.96) rotate(-1deg)"));
   logo.addEventListener("mouseup", () => (logo.style.transform = ""));
@@ -110,4 +162,3 @@ document.querySelectorAll(".icon-btn").forEach((btn) => {
     }, 500);
   });
 });
-
