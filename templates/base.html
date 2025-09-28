@@ -2,13 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" -->
+
     {% block head %}{% endblock %}
   </head>
-  <body class="min-h-screen bg-gradient-to-br from-sky-300 to-indigo-300 flex flex-col">
+
+  <body
+    class="bg-gradient-to-br from-indigo-100 to-indigo-200 min-h-screen transition-colors duration-500 font-sans"
+  >
+    
     {% block body %}{% endblock %}
   </body>
 </html>

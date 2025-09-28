@@ -1,294 +1,285 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fix IT DUT</title>
-    <!-- TailwindCSS CDN -->
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  </head>
-  <body
-    class="relative min-h-screen overflow-x-hidden p-4 font-sans bg-gradient-to-br from-indigo-200 to-indigo-100"
+{% extends 'base.html' %} {% block head %}
+
+<title>Fix IT DUT</title>
+
+{% endblock %} {% block body %}
+<!-- Background blur shapes -->
+<div
+  class="absolute inset-0 -top-36 -left-36 w-screen h-screen opacity-35 blur-2xl pointer-events-none z-0 bg-[radial-gradient(circle_at_20%_30%,#818cf8_0%,transparent_70%),radial-gradient(circle_at_80%_70%,#a5b4fc_0%,transparent_70%)]"
+></div>
+
+<!-- Desktop/Tablet Layout -->
+<div
+  class="container relative z-10 mx-auto flex flex-wrap gap-12 rounded-2xl bg-white/85 shadow-xl p-10 min-h-[550px] max-w-6xl animate-fade-in hidden md:flex"
+>
+  <!-- Left section -->
+  <div
+    class="flex-1 min-w-[300px] flex flex-col items-center justify-center gap-1 pb-4"
   >
-    <!-- Background blur shapes -->
-    <div
-      class="absolute inset-0 -top-36 -left-36 w-screen h-screen opacity-35 blur-2xl pointer-events-none z-0 bg-[radial-gradient(circle_at_20%_30%,#818cf8_0%,transparent_70%),radial-gradient(circle_at_80%_70%,#a5b4fc_0%,transparent_70%)]"
-    ></div>
-
-    <!-- Desktop/Tablet Layout -->
-    <div
-      class="container relative z-10 mx-auto flex flex-wrap gap-12 rounded-2xl bg-white/85 shadow-xl p-10 min-h-[550px] max-w-6xl animate-fade-in hidden md:flex"
+    <h1
+      class="fixit-logo font-black text-[2.8rem] tracking-tight cursor-pointer transition-transform duration-200 ease-out hover:scale-110 hover:-rotate-2 hover:shadow-lg focus:scale-110 focus:-rotate-2 focus:shadow-lg outline-none"
     >
-      <!-- Left section -->
+      <span class="text-gray-900">Fix IT </span
+      ><span class="text-green-900">D</span
+      ><span class="text-purple-700">U</span
+      ><span class="text-teal-200">T</span>
+    </h1>
+    <p
+      class="subtitle font-semibold text-indigo-500 text-xl text-center max-w-xl"
+    >
+      Better Maintenance, Smoother Campus.
+    </p>
+    <div class="flex gap-7 mt-8 justify-center items-center max-w-xl">
       <div
-        class="flex-1 min-w-[300px] flex flex-col items-center justify-center gap-1 pb-4"
+        class="image-box flex-1 max-w-[8rem] aspect-square rounded-xl shadow-md overflow-hidden bg-white hover:scale-110 hover:-rotate-2 hover:shadow-2xl transition-transform duration-200"
       >
-        <h1
-          class="fixit-logo font-black text-[2.8rem] tracking-tight cursor-pointer transition-transform duration-200 ease-out hover:scale-110 hover:-rotate-2 hover:shadow-lg focus:scale-110 focus:-rotate-2 focus:shadow-lg outline-none"
-        >
-          <span class="text-gray-900">Fix IT </span
-          ><span class="text-green-900">D</span
-          ><span class="text-purple-700">U</span
-          ><span class="text-teal-200">T</span>
-        </h1>
-        <p
-          class="subtitle font-semibold text-indigo-500 text-xl text-center max-w-xl"
-        >
-          Better Maintenance, Smoother Campus.
-        </p>
-        <div class="flex gap-7 mt-8 justify-center items-center max-w-xl">
-          <div
-            class="image-box flex-1 max-w-[8rem] aspect-square rounded-xl shadow-md overflow-hidden bg-white hover:scale-110 hover:-rotate-2 hover:shadow-2xl transition-transform duration-200"
-          >
-            <img
-              class="w-full h-full object-cover"
-              src="https://www.dut.ac.za/wp-content/uploads/2023/04/Living-the-values-webpage-12.jpg"
-              alt="Living the Values"
-            />
-          </div>
-          <div
-            class="image-box flex-1 max-w-[8rem] aspect-square rounded-xl shadow-md overflow-hidden bg-white hover:scale-110 hover:-rotate-2 hover:shadow-2xl transition-transform duration-200"
-          >
-            <img
-              class="w-full h-full object-cover"
-              src="https://tse1.mm.bing.net/th/id/OIP.VX6SIViqqympaVRBfSyZpAHaD4?rs=1&pid=ImgDetMain&o=7&rm=3"
-              alt="Accountability"
-            />
-          </div>
-          <div
-            class="image-box flex-1 max-w-[8rem] aspect-square rounded-xl shadow-md overflow-hidden bg-white hover:scale-110 hover:-rotate-2 hover:shadow-2xl transition-transform duration-200"
-          >
-            <img
-              class="w-full h-full object-cover"
-              src="https://tse4.mm.bing.net/th/id/OIP.isrOqF66q9wz8l1k6jNPQAHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
-              alt="Transparency"
-            />
-          </div>
-        </div>
+        <img
+          class="w-full h-full object-cover"
+          src="https://www.dut.ac.za/wp-content/uploads/2023/04/Living-the-values-webpage-12.jpg"
+          alt="Living the Values"
+        />
       </div>
-
-      <!-- Right section (form) -->
       <div
-        class="flex-1 max-w-sm w-full flex flex-col items-center bg-white rounded-xl shadow-lg p-8 relative"
+        class="image-box flex-1 max-w-[8rem] aspect-square rounded-xl shadow-md overflow-hidden bg-white hover:scale-110 hover:-rotate-2 hover:shadow-2xl transition-transform duration-200"
       >
-        <h2 class="text-3xl font-bold text-indigo-900 mb-2">Sign In</h2>
-        <p class="subtitle text-indigo-400 font-medium mb-6">
-          Use your DUT credentials
-        </p>
-        <form id="loginForm" class="w-full">
-          <!-- Email -->
-          <label for="email" class="font-medium">Email</label>
-          <div class="relative mb-2">
-            <span
-              class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
-            >
-              <!-- email icon -->
-              <svg
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M2 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
-                <rect x="2" y="6" width="16" height="12" rx="2" />
-                <path d="M2 6l8 6 8-6" />
-              </svg>
-            </span>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autocomplete="username"
-              class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 shadow-sm focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-            />
-          </div>
-          <div
-            class="error-message text-red-600 text-sm hidden"
-            id="desktopEmailError"
-          ></div>
-
-          <!-- Password -->
-          <label for="password" class="font-medium">Password</label>
-          <div class="relative mb-2">
-            <span
-              class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
-            >
-              <!-- lock icon -->
-              <svg
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <rect x="6" y="8" width="8" height="8" rx="4" />
-                <path d="M12 12v2" />
-                <circle cx="10" cy="10" r="4" />
-              </svg>
-            </span>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 shadow-sm focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-            />
-          </div>
-          <div
-            class="error-message text-red-600 text-sm hidden"
-            id="desktopPasswordError"
-          ></div>
-
-          <a
-            href="Forgot password(DSKTOP).HTML"
-            class="text-indigo-500 underline text-sm font-semibold block mt-2 mb-4"
-            >Forgot password?</a
-          >
-          <button
-            type="submit"
-            class="bg-indigo-500 text-white font-bold py-2 rounded-md w-full shadow-md hover:bg-indigo-400 active:scale-95 transition"
-          >
-            Sign in
-          </button>
-        </form>
-        <p class="mt-10 text-indigo-500 underline font-semibold">
-          <a href="sign-up.html">Don't have an account?</a>
-        </p>
+        <img
+          class="w-full h-full object-cover"
+          src="https://tse1.mm.bing.net/th/id/OIP.VX6SIViqqympaVRBfSyZpAHaD4?rs=1&pid=ImgDetMain&o=7&rm=3"
+          alt="Accountability"
+        />
+      </div>
+      <div
+        class="image-box flex-1 max-w-[8rem] aspect-square rounded-xl shadow-md overflow-hidden bg-white hover:scale-110 hover:-rotate-2 hover:shadow-2xl transition-transform duration-200"
+      >
+        <img
+          class="w-full h-full object-cover"
+          src="https://tse4.mm.bing.net/th/id/OIP.isrOqF66q9wz8l1k6jNPQAHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
+          alt="Transparency"
+        />
       </div>
     </div>
+  </div>
 
-    <!-- Mobile stacked layout -->
-    <main
-      class="flex flex-col items-center min-h-screen p-6 text-center bg-gradient-to-br from-indigo-200 to-indigo-100 md:hidden animate-fade-in"
-    >
-      <h1 class="fixit-logo font-black text-3xl cursor-pointer">
-        <span class="text-gray-900">Fix IT </span
-        ><span class="text-green-900">D</span
-        ><span class="text-purple-700">U</span
-        ><span class="text-teal-200">T</span>
-      </h1>
-      <div class="tagline mt-2 mb-6 font-medium">
-        Better maintenance, Smoother Campus.
+  <!-- Right section (form) -->
+  <div
+    class="flex-1 max-w-sm w-full flex flex-col items-center bg-white rounded-xl shadow-lg p-8 relative"
+  >
+    <h2 class="text-3xl font-bold text-indigo-900 mb-2">Sign In</h2>
+    <p class="subtitle text-indigo-400 font-medium mb-6">
+      Use your DUT credentials
+    </p>
+    <form id="loginForm" class="w-full">
+      <!-- Email -->
+      <label for="email" class="font-medium">Email</label>
+      <div class="relative mb-2">
+        <span
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
+        >
+          <!-- email icon -->
+          <svg
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M2 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
+            <rect x="2" y="6" width="16" height="12" rx="2" />
+            <path d="M2 6l8 6 8-6" />
+          </svg>
+        </span>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="username"
+          class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 shadow-sm focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
+        />
       </div>
-      <form
-        id="mobileSignInForm"
-        action="dashboard.html"
-        method="get"
-        class="mobile-form bg-white/95 rounded-xl shadow-lg p-6 w-full max-w-md"
+      <div
+        class="error-message text-red-600 text-sm hidden"
+        id="desktopEmailError"
+      ></div>
+
+      <!-- Password -->
+      <label for="password" class="font-medium">Password</label>
+      <div class="relative mb-2">
+        <span
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
+        >
+          <!-- lock icon -->
+          <svg
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="6" y="8" width="8" height="8" rx="4" />
+            <path d="M12 12v2" />
+            <circle cx="10" cy="10" r="4" />
+          </svg>
+        </span>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 shadow-sm focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
+        />
+      </div>
+      <div
+        class="error-message text-red-600 text-sm hidden"
+        id="desktopPasswordError"
+      ></div>
+
+      <a
+        href="Forgot password(DSKTOP).HTML"
+        class="text-indigo-500 underline text-sm font-semibold block mt-2 mb-4"
+        >Forgot password?</a
       >
-        <h2 class="text-xl font-bold text-indigo-900 mb-2">Sign In</h2>
-        <p class="text-indigo-400 font-medium mb-6">Use your DUT credentials</p>
-        <div class="mb-4 relative">
-          <span
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M2 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
-              <rect x="2" y="6" width="16" height="12" rx="2" />
-              <path d="M2 6l8 6 8-6" />
-            </svg>
-          </span>
-          <input
-            type="email"
-            id="mobileEmail"
-            name="email"
-            placeholder="Email"
-            required
-            autocomplete="username"
-            class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-          />
-          <div
-            class="error-message text-red-600 text-sm hidden"
-            id="mobileEmailError"
-          ></div>
-        </div>
-        <div class="mb-4 relative">
-          <span
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="6" y="8" width="8" height="8" rx="4" />
-              <path d="M12 12v2" />
-              <circle cx="10" cy="10" r="4" />
-            </svg>
-          </span>
-          <input
-            type="password"
-            id="mobilePassword"
-            name="password"
-            placeholder="Password"
-            required
-            autocomplete="current-password"
-            class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-          />
-          <div
-            class="error-message text-red-600 text-sm hidden"
-            id="mobilePasswordError"
-          ></div>
-        </div>
-        <a
-          href="Forgot password(DSKTOP).HTML"
-          class="text-indigo-500 underline text-sm font-semibold block mb-4"
-          >Forgot password?</a
-        >
-        <button
-          type="submit"
-          class="bg-indigo-500 text-white font-bold py-2 rounded-md w-full shadow-md hover:bg-indigo-400 active:scale-95 transition"
-        >
-          Sign in
-        </button>
-        <p class="mt-6 text-indigo-500 underline font-semibold">
-          <a href="sign-up.html">Don't have an account?</a>
-        </p>
-      </form>
-      <div class="mobile-value-cards flex gap-4 mt-6 max-w-md">
-        <div
-          class="value-card bg-white rounded-md shadow-md p-3 flex flex-col items-center font-semibold text-sm"
-        >
-          <img
-            src="accountability.png"
-            class="w-14 h-14 object-contain mb-2 rounded border bg-gray-100"
-            alt="Accountability"
-          />
-          <span class="text-green-900">accountability.</span>
-        </div>
-        <div
-          class="value-card bg-white rounded-md shadow-md p-3 flex flex-col items-center font-semibold text-sm"
-        >
-          <img
-            src="Transperancy.png"
-            class="w-14 h-14 object-contain mb-2 rounded border bg-gray-100"
-            alt="Transparency"
-          />
-          <span class="text-purple-700">transparency.</span>
-        </div>
-        <div
-          class="value-card bg-white rounded-md shadow-md p-3 flex flex-col items-center font-semibold text-sm"
-        >
-          <img
-            src="honesty.png"
-            class="w-14 h-14 object-contain mb-2 rounded border bg-gray-100"
-            alt="Honesty"
-          />
-          <span class="text-teal-200">honesty.</span>
-        </div>
-      </div>
-    </main>
+      <button
+        type="submit"
+        class="bg-indigo-500 text-white font-bold py-2 rounded-md w-full shadow-md hover:bg-indigo-400 active:scale-95 transition"
+      >
+        Sign in
+      </button>
+    </form>
+    <p class="mt-10 text-indigo-500 underline font-semibold">
+      <a href="sign-up.html">Don't have an account?</a>
+    </p>
+  </div>
+</div>
 
-    <!-- Your extracted JS -->
-    <script src="static/js/sign-in.js"></script>
-  </body>
-</html>
+<!-- Mobile stacked layout -->
+<main
+  class="flex flex-col items-center min-h-screen p-6 text-center bg-gradient-to-br from-indigo-200 to-indigo-100 md:hidden animate-fade-in"
+>
+  <h1 class="fixit-logo font-black text-3xl cursor-pointer">
+    <span class="text-gray-900">Fix IT </span
+    ><span class="text-green-900">D</span><span class="text-purple-700">U</span
+    ><span class="text-teal-200">T</span>
+  </h1>
+  <div class="tagline mt-2 mb-6 font-medium">
+    Better maintenance, Smoother Campus.
+  </div>
+  <form
+    id="mobileSignInForm"
+    action="dashboard.html"
+    method="get"
+    class="mobile-form bg-white/95 rounded-xl shadow-lg p-6 w-full max-w-md"
+  >
+    <h2 class="text-xl font-bold text-indigo-900 mb-2">Sign In</h2>
+    <p class="text-indigo-400 font-medium mb-6">Use your DUT credentials</p>
+    <div class="mb-4 relative">
+      <span
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
+      >
+        <svg
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M2 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
+          <rect x="2" y="6" width="16" height="12" rx="2" />
+          <path d="M2 6l8 6 8-6" />
+        </svg>
+      </span>
+      <input
+        type="email"
+        id="mobileEmail"
+        name="email"
+        placeholder="Email"
+        required
+        autocomplete="username"
+        class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
+      />
+      <div
+        class="error-message text-red-600 text-sm hidden"
+        id="mobileEmailError"
+      ></div>
+    </div>
+    <div class="mb-4 relative">
+      <span
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 opacity-70"
+      >
+        <svg
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="6" y="8" width="8" height="8" rx="4" />
+          <path d="M12 12v2" />
+          <circle cx="10" cy="10" r="4" />
+        </svg>
+      </span>
+      <input
+        type="password"
+        id="mobilePassword"
+        name="password"
+        placeholder="Password"
+        required
+        autocomplete="current-password"
+        class="w-full pl-10 pr-3 py-2 rounded-md bg-indigo-100 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
+      />
+      <div
+        class="error-message text-red-600 text-sm hidden"
+        id="mobilePasswordError"
+      ></div>
+    </div>
+    <a
+      href="Forgot password(DSKTOP).HTML"
+      class="text-indigo-500 underline text-sm font-semibold block mb-4"
+      >Forgot password?</a
+    >
+    <button
+      type="submit"
+      class="bg-indigo-500 text-white font-bold py-2 rounded-md w-full shadow-md hover:bg-indigo-400 active:scale-95 transition"
+    >
+      Sign in
+    </button>
+    <p class="mt-6 text-indigo-500 underline font-semibold">
+      <a href="sign-up.html">Don't have an account?</a>
+    </p>
+  </form>
+  <div class="mobile-value-cards flex gap-4 mt-6 max-w-md">
+    <div
+      class="value-card bg-white rounded-md shadow-md p-3 flex flex-col items-center font-semibold text-sm"
+    >
+      <img
+        src="accountability.png"
+        class="w-14 h-14 object-contain mb-2 rounded border bg-gray-100"
+        alt="Accountability"
+      />
+      <span class="text-green-900">accountability.</span>
+    </div>
+    <div
+      class="value-card bg-white rounded-md shadow-md p-3 flex flex-col items-center font-semibold text-sm"
+    >
+      <img
+        src="Transperancy.png"
+        class="w-14 h-14 object-contain mb-2 rounded border bg-gray-100"
+        alt="Transparency"
+      />
+      <span class="text-purple-700">transparency.</span>
+    </div>
+    <div
+      class="value-card bg-white rounded-md shadow-md p-3 flex flex-col items-center font-semibold text-sm"
+    >
+      <img
+        src="honesty.png"
+        class="w-14 h-14 object-contain mb-2 rounded border bg-gray-100"
+        alt="Honesty"
+      />
+      <span class="text-teal-200">honesty.</span>
+    </div>
+  </div>
+</main>
+
+<!-- Your extracted JS -->
+<script src="static/js/sign-in.js"></script>
+{% endblock %}
