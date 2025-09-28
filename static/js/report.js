@@ -71,7 +71,7 @@ $("reportForm").addEventListener("submit", (e) => {
   const arr = loadRequests();
   arr.unshift(req);
   saveRequests(arr);
-  window.location.href = "dashboard.html";
+  window.location.href = "dashboard";
 });
 
 // Logout

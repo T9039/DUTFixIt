@@ -64,7 +64,7 @@ if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("signedInEmail");
     localStorage.removeItem("userProfile");
-    window.location.href = "Sign in (DESKTOP).html";
+    window.location.href = "sign-in";
   });
 }
 
