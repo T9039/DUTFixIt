@@ -34,8 +34,8 @@ class User(db.Model):
 
     # NEW: role field
     class UserRole(enum.Enum):
-        STUDENT = "Student"
-        STAFF = "Staff"
+        STUDENT = "STUDENT"
+        STAFF = "STAFF"
 
     user_role = db.Column(db.Enum(UserRole), nullable=False)
 
@@ -143,6 +143,45 @@ def index():
 
 @app.route("/sign-in", methods=["POST", "GET"])
 def sign_in():
+    if request.method == "POST":
+        # Detect JSON vs traditional form POST
+        if request.is_json:
+            data = request.get_json()
+            email = data.get("email", "").strip().lower()
+            password = data.get("password", "")
+        else:
+            email = request.form.get("email", "").strip().lower()
+            password = request.form.get("password", "")
+
+        # Basic validation
+        if not email or not password:
+            msg = "Email, password, and role are required."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
+
+        if not is_valid_dut_email(email):
+            msg = "Please use a valid DUT email (@dut.ac.za or @dut4life.ac.za)."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
+
+        user = User.query.filter_by(user_email=email).first()
+
+        # 🔹 Check password
+        if not user or not user.check_pass_hash(password):
+            msg = "Invalid email or password."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 401
+            return msg, 401
+
+        # If correct
+        if request.is_json:
+            return jsonify({"success": True, "message": "Login successful"}), 200
+        return redirect("/dashboard")
+
     return render_template("sign-in.html")
 
 
@@ -154,11 +193,11 @@ def sign_up():
             data = request.get_json()
             email = data.get("email", "").strip().lower()
             password = data.get("password", "")
-            role = data.get("role", "")
+            role = data.get("role", "").upper()
         else:
             email = request.form.get("email", "").strip().lower()
             password = request.form.get("password", "")
-            role = request.form.get("role", "")
+            role = request.form.get("role", "").upper()
 
         # Basic validation
         if not email or not password or not role:
@@ -177,7 +216,7 @@ def sign_up():
                 return msg, 400
 
         # Role whitelist check
-        valid_roles = ["Student", "Staff"]
+        valid_roles = ["STUDENT", "STAFF"]
         if role not in valid_roles:
             msg = "Invalid role selected."
             if request.is_json:
@@ -197,7 +236,7 @@ def sign_up():
         try:
             new_user = User()
             new_user.user_email = email
-            new_user.user_role = role
+            new_user.user_role = User.UserRole[role]
             new_user.set_pass_hash(password)
 
             db.session.add(new_user)
