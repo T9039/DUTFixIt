@@ -11,7 +11,6 @@
   <body
     class="bg-gradient-to-br from-indigo-100 to-indigo-200 min-h-screen transition-colors duration-500 font-sans"
   >
-    
     <div
       class="fixed top-[-120px] left-[-120px] right-0 bottom-0 w-screen h-screen opacity-20 blur-[40px] pointer-events-none z-0 bg-[radial-gradient(circle_at_25%_25%,#6366f1_0%,transparent_70%),radial-gradient(circle_at_75%_75%,#818cf8_0%,transparent_70%)]"
     ></div>
@@ -29,7 +28,8 @@
         </span>
       </div>
       <nav class="flex items-center gap-6 text-white text-lg">
-        <button
+        <a
+          href="/dashboard"
           aria-label="Home"
           title="Home"
           class="icon-btn hover:text-indigo-200 transition"
@@ -47,7 +47,7 @@
               clip-rule="evenodd"
             />
           </svg>
-        </button>
+        </a>
         <button
           aria-label="Notifications"
           title="Notifications"
@@ -110,8 +110,6 @@
       </nav>
     </header>
 
-
     {% block body %}{% endblock %}
   </body>
 </html>
-
