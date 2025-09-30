@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 
 from email_validator import EmailNotValidError, validate_email
-from flask import Flask, jsonify, redirect, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -10,6 +10,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 db = SQLAlchemy(app)
+
+# 🔹 Development secret key (change for production!)
+app.secret_key = "dev_3kq2g9p1v8x4b7z6"  # randomly generated for dev use
 
 # Data class(not the same thing) ~ row of data
 
@@ -47,6 +50,30 @@ class User(db.Model):
 
     def check_pass_hash(self, password):
         return check_password_hash(self.user_password_hash, password)
+
+
+class Report(db.Model):
+    report_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
+
+    # Basic report info
+    category = db.Column(db.String(50), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    campus = db.Column(db.String(50), nullable=False)
+    block = db.Column(db.String(50), nullable=False)
+    nearest_class = db.Column(db.String(50))
+    notes = db.Column(db.Text, nullable=False)
+
+    # Status tracking
+    status = db.Column(
+        db.String(20), default="pending"
+    )  # pending / in_progress / resolved
+
+    # Timestamp
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Report {self.report_id} by User {self.user_id}>"
 
 
 def is_valid_dut_email(email: str) -> bool:
@@ -177,7 +204,11 @@ def sign_in():
                 return jsonify({"success": False, "message": msg}), 401
             return msg, 401
 
-        # If correct
+        # 🔹 Set session BEFORE returning
+        session["user_id"] = user.user_id
+        session["email"] = user.user_email
+
+        # Return response
         if request.is_json:
             return jsonify({"success": True, "message": "Login successful"}), 200
         return redirect("/dashboard")
@@ -262,6 +293,54 @@ def sign_up():
 
 @app.route("/report", methods=["POST", "GET"])
 def report():
+    if "user_id" not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    if request.method == "POST":
+        # Detect JSON vs traditional form POST
+        if request.is_json:
+            data = request.get_json()
+            category = data.get("category")
+            type = data.get("type")
+            campus = data.get("campus")
+            block = data.get("block")
+            nearest_class = data.get("nearestClass")
+            notes = data.get("notes")
+        else:
+            category = request.form.get("category")
+            type = request.form.get("type")
+            campus = request.form.get("campus")
+            block = request.form.get("block")
+            nearest_class = request.form.get("nearestClass")
+            notes = request.form.get("notes")
+
+        try:
+            new_report = Report()
+            new_report.user_id = session["user_id"]
+            new_report.category = category
+            new_report.campus = campus
+            new_report.block = block
+            new_report.notes = notes
+            new_report.type = type
+            new_report.nearest_class = nearest_class
+
+            db.session.add(new_report)
+            db.session.commit()
+
+            msg = "Report submitted successfully."
+            if request.is_json:
+                return jsonify({"success": True, "message": msg}), 200
+            else:
+                return redirect("/dashboard")
+
+        except Exception as e:
+            print(f"ERROR: {e}")
+            msg = "An unexpected error occurred. Please try again."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 500
+            else:
+                return msg, 500
+
     return render_template("report.html")
 
 
@@ -280,6 +359,33 @@ def reset_db():
     db.drop_all()
     db.create_all()
     return "Database reset!"
+
+
+@app.route("/test-report")
+def test_last_report():
+    last_report = Report.query.order_by(Report.report_id.desc()).first()
+    if last_report is None:
+        return {"error": "No reports found"}
+
+    user = User.query.get(last_report.user_id)
+
+    return {
+        "report": {
+            "id": last_report.report_id,
+            "category": last_report.category,
+            "type": last_report.type,
+            "campus": last_report.campus,
+            "block": last_report.block,
+            "nearest_class": last_report.nearest_class,
+            "notes": last_report.notes,
+            "user_id": last_report.user_id,
+        },
+        "user": {
+            "id": user.user_id if user else None,
+            "email": user.user_email if user else None,
+            "role": user.user_role.value if user else None,
+        },
+    }
 
 
 if __name__ == "__main__":
