@@ -98,6 +98,14 @@ $("reportForm").addEventListener("submit", async (e) => {
       body: JSON.stringify(data),
     });
 
+    // If the backend explicitly returned 401 (not logged in)
+    if (res.status === 401) {
+      const result = await res.json();
+      alert(result.message || "You must be logged in to submit a report.");
+      window.location.href = "/sign-in"; // redirect
+      return;
+    }
+
     const result = await res.json();
     if (result.success) {
       // Redirect on success

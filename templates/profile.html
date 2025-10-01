@@ -25,9 +25,9 @@
     <form id="profileForm" class="space-y-6">
       <!-- DUT ID (non-editable) -->
       <div>
-        <label class="block text-gray-600 font-medium">DUT ID</label>
+        <label class="block text-gray-600 font-medium">ID</label>
         <span
-          id="dutIdDisplay"
+          id="idDisplay"
           class="block text-lg font-semibold text-gray-900"
         ></span>
       </div>
@@ -106,23 +106,14 @@
         <span
           id="passwordDisplay"
           class="block text-lg font-semibold text-gray-900 select-none"
-          >••••••••</span
+        ></span>
+        <button
+          id="changePasswordBtn"
+          type="button"
+          class="mt-2 text-indigo-600 font-semibold hover:underline"
         >
-        <div class="relative hidden" id="passwordEditWrapper">
-          <input
-            id="passwordInput"
-            name="password"
-            type="password"
-            class="mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
-          />
-          <button
-            id="togglePassword"
-            type="button"
-            class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500"
-          >
-            <!-- eye svg omitted for brevity -->
-          </button>
-        </div>
+          Change Password
+        </button>
       </div>
     </form>
   </div>

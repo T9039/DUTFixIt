@@ -1,4 +1,5 @@
 import enum
+import random
 from datetime import datetime
 
 from email_validator import EmailNotValidError, validate_email
@@ -21,7 +22,8 @@ class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
     task_name = db.Column(db.String(50), nullable=False)
     task_email = db.Column(db.String(120), unique=True, nullable=False)
-    task_message = db.Column(db.Text, nullable=True)  # good for longer free text
+    # good for longer free text
+    task_message = db.Column(db.Text, nullable=True)
     task_complete = db.Column(db.Integer, default=0)
     task_created = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -294,7 +296,8 @@ def sign_up():
 @app.route("/report", methods=["POST", "GET"])
 def report():
     if "user_id" not in session:
-        return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+        # return jsonify({"success": False, "message": "User not logged in"}), 401
 
     if request.method == "POST":
         # Detect JSON vs traditional form POST
@@ -344,8 +347,48 @@ def report():
     return render_template("report.html")
 
 
-@app.route("/profile", methods=["POST", "GET"])
+@app.route("/profile", methods=["GET"])
 def profile():
+    if "user_id" not in session:
+        # Redirect for normal page load, JSON for fetch
+        if (
+            request.accept_mimetypes.accept_json
+            and not request.accept_mimetypes.accept_html
+        ):
+            return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+
+    user = User.query.get(session["user_id"])
+    if not user:
+        if (
+            request.accept_mimetypes.accept_json
+            and not request.accept_mimetypes.accept_html
+        ):
+            return jsonify({"success": False, "message": "User not found"}), 404
+        return "User not found", 404
+
+    # Determine gender placeholder
+    gender = getattr(user, "gender", None) or random.choice(["male", "female"])
+
+    # Check if this is a JSON request (AJAX fetch)
+    if (
+        request.accept_mimetypes.accept_json
+        and not request.accept_mimetypes.accept_html
+    ):
+        return jsonify(
+            {
+                "success": True,
+                "id": user.user_id,
+                "email": user.user_email,
+                "fullName": "",  # placeholder
+                "surname": "",  # placeholder
+                "gender": gender,
+                "role": user.user_role.value,
+                "passwordLength": 12,  # placeholder, TODO: Calculate the real length before hashing
+            }
+        )
+
+    # Otherwise, render the HTML page
     return render_template("profile.html")
 
 
