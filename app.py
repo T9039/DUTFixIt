@@ -392,8 +392,49 @@ def profile():
     return render_template("profile.html")
 
 
-@app.route("/dashboard", methods=["POST", "GET"])
+@app.route("/dashboard", methods=["GET"])
 def dashboard():
+    if "user_id" not in session:
+        # redirect to login for page loads
+        if "application/json" in request.headers.get("Accept", ""):
+            return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+
+    # If it's a fetch request asking for JSON
+    if "application/json" in request.headers.get("Accept", ""):
+        try:
+            user_id = session["user_id"]
+            reports = (
+                Report.query.filter_by(user_id=user_id)
+                .order_by(Report.report_id.desc())
+                .all()
+            )
+
+            reports_list = []
+            for r in reports:
+                reports_list.append(
+                    {
+                        "id": r.report_id,
+                        "category": r.category,
+                        "type": r.type,
+                        "status": getattr(r, "status", "pending"),
+                        "notes": r.notes,
+                        "date": r.created_at.strftime("%Y-%m-%d")
+                        if hasattr(r, "created_at")
+                        else "",
+                        "time": r.created_at.strftime("%H:%M")
+                        if hasattr(r, "created_at")
+                        else "",
+                    }
+                )
+
+            return jsonify({"success": True, "reports": reports_list}), 200
+
+        except Exception as e:
+            print(f"ERROR fetching user reports: {e}")
+            return jsonify({"success": False, "message": "Server error"}), 500
+
+    # Otherwise render the dashboard page
     return render_template("dashboard.html")
 
 
