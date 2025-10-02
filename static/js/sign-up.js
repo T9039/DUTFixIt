@@ -60,7 +60,7 @@ function attachValidation(formId, passwordId, confirmId) {
 
       if (response.ok) {
         showToast("User created successfully!", "success");
-        setTimeout(() => (window.location.href = "/"), 1500);
+        setTimeout(() => (window.location.href = "/sign-in"), 1500);
       } else if (response.status === 409) {
         showToast("An account with this email already exists.", "error");
       } else {
