@@ -1,6 +1,7 @@
 import enum
 import random
-from datetime import datetime
+import smtplib
+from datetime import datetime, timedelta
 
 from email_validator import EmailNotValidError, validate_email
 from flask import Flask, jsonify, redirect, render_template, request, session
@@ -14,6 +15,31 @@ db = SQLAlchemy(app)
 
 # 🔹 Development secret key (change for production!)
 app.secret_key = "dev_3kq2g9p1v8x4b7z6"  # randomly generated for dev use
+
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+
+def send_email(to_email, subject, body):
+    """
+    Simplest option: use Gmail SMTP or Mailtrap.io (free).
+    For a school project you can hardcode Mailtrap credentials.
+    """
+    from_email = "your_test_account@mailtrap.io"
+    from_password = "your_password"
+
+    try:
+        with smtplib.SMTP("smtp.mailtrap.io", 587) as server:
+            server.starttls()
+            server.login(from_email, from_password)
+            message = f"Subject: {subject}\n\n{body}"
+            server.sendmail(from_email, to_email, message)
+        return True
+    except Exception as e:
+        print("Email send failed:", e)
+        return False
+
 
 # Data class(not the same thing) ~ row of data
 
@@ -105,69 +131,69 @@ def email_exists(email: str) -> bool:
 
 @app.route("/", methods=["POST", "GET"])
 def index():
-    if request.method == "POST":
-        # Handle JSON POST from JS
-        if request.is_json:
-            data = request.get_json()
-            name = data.get("name", "")
-            email = data.get("email", "")
-            message = data.get("message", "")
-        else:
-            # fallback for normal HTML form POST
-            name = request.form.get("name", "")
-            email = request.form.get("email", "")
-            message = request.form.get("message", "")
+    # if request.method == "POST":
+    #     # Handle JSON POST from JS
+    #     if request.is_json:
+    #         data = request.get_json()
+    #         name = data.get("name", "")
+    #         email = data.get("email", "")
+    #         message = data.get("message", "")
+    #     else:
+    #         # fallback for normal HTML form POST
+    #         name = request.form.get("name", "")
+    #         email = request.form.get("email", "")
+    #         message = request.form.get("message", "")
+    #
+    #     # Basic validation
+    #     if not name.strip() or not email.strip():
+    #         if request.is_json:
+    #             return jsonify(
+    #                 {"success": False, "error": "Name and email are required"}
+    #             ), 400
+    #         else:
+    #             return "Error: Name and email are required", 400
+    #
+    #     new_task = Task()
+    #     new_task.task_name = name.strip()
+    #     new_task.task_email = email.strip().lower()  # normalize email
+    #     new_task.task_message = message.strip() if message else None
+    #
+    #     try:
+    #         db.session.add(new_task)
+    #         db.session.commit()
+    #
+    #         # Return appropriate response based on request type
+    #         if request.is_json:
+    #             return jsonify(
+    #                 {
+    #                     "success": True,
+    #                     "message": "Data submitted successfully",
+    #                     "data": {
+    #                         "id": new_task.task_id,
+    #                         "name": new_task.task_name,
+    #                         "email": new_task.task_email,
+    #                         "created": new_task.task_created.isoformat(),
+    #                     },
+    #                 }
+    #             )
+    #         else:
+    #             return redirect("/")
+    #
+    #     except Exception as e:
+    #         print(f"ERROR: {e}")  # server log only
+    #
+    #         error_msg = (
+    #             "This email address is already registered"
+    #             if "UNIQUE constraint failed" in str(e)
+    #             else "An unexpected error occurred"
+    #         )
+    #
+    #         if request.is_json:
+    #             return jsonify({"success": False, "message": error_msg}), 409
+    #         else:
+    #             return f"ERROR: {error_msg}", 409
 
-        # Basic validation
-        if not name.strip() or not email.strip():
-            if request.is_json:
-                return jsonify(
-                    {"success": False, "error": "Name and email are required"}
-                ), 400
-            else:
-                return "Error: Name and email are required", 400
-
-        new_task = Task()
-        new_task.task_name = name.strip()
-        new_task.task_email = email.strip().lower()  # normalize email
-        new_task.task_message = message.strip() if message else None
-
-        try:
-            db.session.add(new_task)
-            db.session.commit()
-
-            # Return appropriate response based on request type
-            if request.is_json:
-                return jsonify(
-                    {
-                        "success": True,
-                        "message": "Data submitted successfully",
-                        "data": {
-                            "id": new_task.task_id,
-                            "name": new_task.task_name,
-                            "email": new_task.task_email,
-                            "created": new_task.task_created.isoformat(),
-                        },
-                    }
-                )
-            else:
-                return redirect("/")
-
-        except Exception as e:
-            print(f"ERROR: {e}")  # server log only
-
-            error_msg = (
-                "This email address is already registered"
-                if "UNIQUE constraint failed" in str(e)
-                else "An unexpected error occurred"
-            )
-
-            if request.is_json:
-                return jsonify({"success": False, "message": error_msg}), 409
-            else:
-                return f"ERROR: {error_msg}", 409
-
-    return render_template("form.html")
+    return render_template("home.html")
 
 
 @app.route("/sign-in", methods=["POST", "GET"])
@@ -216,6 +242,131 @@ def sign_in():
         return redirect("/dashboard")
 
     return render_template("sign-in.html")
+
+
+@app.route("/forgot-password/email", methods=["GET", "POST"])
+def forgot_password_email():
+    if request.method == "GET":
+        return render_template("forgot-password-email.html")
+
+    data = request.get_json(silent=True)
+    if data:
+        email = data.get("email")
+    else:
+        email = request.form.get("email")
+
+    user = User.query.filter_by(user_email=email).first()
+
+    if not user:
+        return jsonify({"success": False, "redirect": "/sign-up.html"})
+
+    # Generate OTP
+    otp_code = generate_otp()
+    expiry = datetime.utcnow() + timedelta(minutes=5)
+
+    session["otp_email"] = email
+    session["otp_code"] = otp_code
+    session["otp_expiry"] = expiry.isoformat()
+    session["otp_attempts"] = 0
+    session["otp_round"] = 1
+
+    # Send OTP via email
+    send_email(
+        email, "Your OTP Code", f"Your OTP is {otp_code}. It expires in 5 minutes."
+    )
+
+    return jsonify({"success": True, "redirect": "/forgot-password/otp"})
+
+
+@app.route("/forgot-password/otp", methods=["GET", "POST"])
+def forgot_password_otp():
+    if request.method == "GET":
+        return render_template("forgot-password-otp.html")
+
+    data = request.get_json(silent=True)
+    if data:
+        otp_input = data.get("otp")
+    else:
+        otp_input = request.form.get("otp")
+
+    otp_code = session.get("otp_code")
+
+    otp_expiry_str = session.get("otp_expiry")
+    if otp_expiry_str is None:
+        return jsonify({"error": "OTP not found or expired"}), 400
+
+    try:
+        otp_expiry = datetime.fromisoformat(otp_expiry_str)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid OTP timestamp"}), 400
+
+    attempts = session.get("otp_attempts", 0)
+    round_num = session.get("otp_round", 1)
+
+    if datetime.utcnow() > otp_expiry:
+        return jsonify(
+            {"success": False, "error": "OTP expired. Please request a new one."}
+        )
+
+    if attempts >= 3:
+        if round_num >= 3:
+            return jsonify({"success": False, "redirect": "sign-up.html"})
+        # resend new otp
+        new_otp = generate_otp()
+        session["otp_code"] = new_otp
+        session["otp_expiry"] = (datetime.utcnow() + timedelta(minutes=5)).isoformat()
+        session["otp_attempts"] = 0
+        session["otp_round"] = round_num + 1
+        send_email(session["otp_email"], "Your OTP Code", f"Your OTP is {new_otp}")
+        return jsonify(
+            {"success": False, "error": "Too many attempts. A new OTP has been sent."}
+        )
+
+    if otp_input == otp_code:
+        return jsonify({"success": True, "redirect": "/forgot-password/new"})
+
+    # wrong code
+    session["otp_attempts"] = attempts + 1
+    return jsonify({"success": False, "error": "Incorrect code. Try again."})
+
+
+@app.route("/forgot-password/new", methods=["GET", "POST"])
+def forgot_password_new():
+    if request.method == "GET":
+        return render_template("forgot-password-new.html")
+
+    email = session.get("otp_email")
+
+    data = request.get_json(silent=True)
+    if data:
+        new_pass = data.get("password")
+    else:
+        new_pass = request.form.get("password")
+
+    if not email:
+        return jsonify({"success": False, "redirect": "/sign-in.html"})
+
+    # if new_pass != confirm_pass or len(new_pass) < 6:
+    #     return jsonify({"success": False, "error": "Passwords invalid or don't match."})
+
+    user = User.query.filter_by(user_email=email).first()
+    if not user:
+        return jsonify({"success": False, "redirect": "/sign-up.html"})
+
+    if not new_pass or not isinstance(new_pass, str):
+        return jsonify({"error": "Missing or invalid new password"}), 400
+
+    user.user_password_hash = generate_password_hash(new_pass)
+    db.session.commit()
+
+    # clear session data
+    session.pop("otp_email", None)
+    session.pop("otp_code", None)
+    session.pop("otp_expiry", None)
+    session.pop("otp_attempts", None)
+    session.pop("otp_round", None)
+
+    return jsonify({"success": True, "redirect": "/sign-in.html"})
 
 
 @app.route("/sign-up", methods=["POST", "GET"])
@@ -278,7 +429,7 @@ def sign_up():
             if request.is_json:
                 return jsonify({"success": True}), 201
             else:
-                return redirect("/")
+                return redirect("/sign-in.html")
 
         except Exception as e:
             # Log full error on server, but return safe message to client
