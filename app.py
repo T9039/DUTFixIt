@@ -1,92 +1,626 @@
-from datetime import datetime
+import enum
+import random
+import smtplib
+from datetime import datetime, timedelta
 
-from flask import Flask, jsonify, redirect, render_template, request
+from email_validator import EmailNotValidError, validate_email
+from flask import Flask, jsonify, redirect, render_template, request, session
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # My app
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 db = SQLAlchemy(app)
 
+# 🔹 Development secret key (change for production!)
+app.secret_key = "dev_3kq2g9p1v8x4b7z6"  # randomly generated for dev use
+
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+
+def send_email(to_email, subject, body):
+    """
+    Simplest option: use Gmail SMTP or Mailtrap.io (free).
+    For a school project you can hardcode Mailtrap credentials.
+    """
+    from_email = "your_test_account@mailtrap.io"
+    from_password = "your_password"
+
+    try:
+        with smtplib.SMTP("smtp.mailtrap.io", 587) as server:
+            server.starttls()
+            server.login(from_email, from_password)
+            message = f"Subject: {subject}\n\n{body}"
+            server.sendmail(from_email, to_email, message)
+        return True
+    except Exception as e:
+        print("Email send failed:", e)
+        return False
+
+
 # Data class(not the same thing) ~ row of data
 
 
 class Task(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    message = db.Column(db.Text, nullable=True)  # good for longer free text
-    complete = db.Column(db.Integer, default=0)
-    created = db.Column(db.DateTime, default=datetime.utcnow)
+    task_id = db.Column(db.Integer, primary_key=True)
+    task_name = db.Column(db.String(50), nullable=False)
+    task_email = db.Column(db.String(120), unique=True, nullable=False)
+    # good for longer free text
+    task_message = db.Column(db.Text, nullable=True)
+    task_complete = db.Column(db.Integer, default=0)
+    task_created = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"Request {self.id}"
+        return f"Request {self.task_id}"
+
+
+class User(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True)
+    user_email = db.Column(db.String(120), unique=True, nullable=False)
+    user_created = db.Column(db.DateTime, default=datetime.utcnow)
+    user_password_hash = db.Column(db.String(255), nullable=False)
+
+    # NEW: role field
+    class UserRole(enum.Enum):
+        STUDENT = "STUDENT"
+        STAFF = "STAFF"
+
+    user_role = db.Column(db.Enum(UserRole), nullable=False)
+
+    def __repr__(self):
+        return f"User {self.user_id}"
+
+    def set_pass_hash(self, password):
+        self.user_password_hash = generate_password_hash(password)
+
+    def check_pass_hash(self, password):
+        return check_password_hash(self.user_password_hash, password)
+
+
+class Report(db.Model):
+    report_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
+
+    # Basic report info
+    category = db.Column(db.String(50), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    campus = db.Column(db.String(50), nullable=False)
+    block = db.Column(db.String(50), nullable=False)
+    nearest_class = db.Column(db.String(50))
+    notes = db.Column(db.Text, nullable=False)
+
+    # Status tracking
+    status = db.Column(
+        db.String(20), default="pending"
+    )  # pending / in_progress / resolved
+
+    # Timestamp
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Report {self.report_id} by User {self.user_id}>"
+
+
+def is_valid_dut_email(email: str) -> bool:
+    """
+    Checks if the email has valid format and DUT domain.
+    """
+    try:
+        v = validate_email(email)
+        email_normalized = v.email.lower()
+        if not (
+            email_normalized.endswith("@dut.ac.za")
+            or email_normalized.endswith("@dut4life.ac.za")
+        ):
+            return False
+        return True
+    except EmailNotValidError:
+        return False
+
+
+def email_exists(email: str) -> bool:
+    """
+    Checks if the email is already registered in the database.
+    """
+    email = email.strip().lower()
+    return User.query.filter_by(user_email=email).first() is not None
 
 
 @app.route("/", methods=["POST", "GET"])
 def index():
+    # if request.method == "POST":
+    #     # Handle JSON POST from JS
+    #     if request.is_json:
+    #         data = request.get_json()
+    #         name = data.get("name", "")
+    #         email = data.get("email", "")
+    #         message = data.get("message", "")
+    #     else:
+    #         # fallback for normal HTML form POST
+    #         name = request.form.get("name", "")
+    #         email = request.form.get("email", "")
+    #         message = request.form.get("message", "")
+    #
+    #     # Basic validation
+    #     if not name.strip() or not email.strip():
+    #         if request.is_json:
+    #             return jsonify(
+    #                 {"success": False, "error": "Name and email are required"}
+    #             ), 400
+    #         else:
+    #             return "Error: Name and email are required", 400
+    #
+    #     new_task = Task()
+    #     new_task.task_name = name.strip()
+    #     new_task.task_email = email.strip().lower()  # normalize email
+    #     new_task.task_message = message.strip() if message else None
+    #
+    #     try:
+    #         db.session.add(new_task)
+    #         db.session.commit()
+    #
+    #         # Return appropriate response based on request type
+    #         if request.is_json:
+    #             return jsonify(
+    #                 {
+    #                     "success": True,
+    #                     "message": "Data submitted successfully",
+    #                     "data": {
+    #                         "id": new_task.task_id,
+    #                         "name": new_task.task_name,
+    #                         "email": new_task.task_email,
+    #                         "created": new_task.task_created.isoformat(),
+    #                     },
+    #                 }
+    #             )
+    #         else:
+    #             return redirect("/")
+    #
+    #     except Exception as e:
+    #         print(f"ERROR: {e}")  # server log only
+    #
+    #         error_msg = (
+    #             "This email address is already registered"
+    #             if "UNIQUE constraint failed" in str(e)
+    #             else "An unexpected error occurred"
+    #         )
+    #
+    #         if request.is_json:
+    #             return jsonify({"success": False, "message": error_msg}), 409
+    #         else:
+    #             return f"ERROR: {error_msg}", 409
+
+    return render_template("home.html")
+
+
+@app.route("/sign-in", methods=["POST", "GET"])
+def sign_in():
     if request.method == "POST":
-        # Handle JSON POST from JS
+        # Detect JSON vs traditional form POST
         if request.is_json:
             data = request.get_json()
-            name = data.get("name", "")
-            email = data.get("email", "")
-            message = data.get("message", "")
+            email = data.get("email", "").strip().lower()
+            password = data.get("password", "")
         else:
-            # fallback for normal HTML form POST
-            name = request.form.get("name", "")
-            email = request.form.get("email", "")
-            message = request.form.get("message", "")
+            email = request.form.get("email", "").strip().lower()
+            password = request.form.get("password", "")
 
         # Basic validation
-        if not name.strip() or not email.strip():
+        if not email or not password:
+            msg = "Email, password, and role are required."
             if request.is_json:
-                return jsonify(
-                    {"success": False, "error": "Name and email are required"}
-                ), 400
+                return jsonify({"success": False, "message": msg}), 400
             else:
-                return "Error: Name and email are required", 400
+                return msg, 400
 
-        new_task = Task()
-        new_task.name = name.strip()
-        new_task.email = email.strip().lower()  # normalize email
-        new_task.message = message.strip() if message else None
+        if not is_valid_dut_email(email):
+            msg = "Please use a valid DUT email (@dut.ac.za or @dut4life.ac.za)."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
 
+        user = User.query.filter_by(user_email=email).first()
+
+        # 🔹 Check password
+        if not user or not user.check_pass_hash(password):
+            msg = "Invalid email or password."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 401
+            return msg, 401
+
+        # 🔹 Set session BEFORE returning
+        session["user_id"] = user.user_id
+        session["email"] = user.user_email
+
+        # Return response
+        if request.is_json:
+            return jsonify({"success": True, "message": "Login successful"}), 200
+        return redirect("/dashboard")
+
+    return render_template("sign-in.html")
+
+
+@app.route("/forgot-password/email", methods=["GET", "POST"])
+def forgot_password_email():
+    if request.method == "GET":
+        return render_template("forgot-password-email.html")
+
+    data = request.get_json(silent=True)
+    if data:
+        email = data.get("email")
+    else:
+        email = request.form.get("email")
+
+    user = User.query.filter_by(user_email=email).first()
+
+    if not user:
+        return jsonify({"success": False, "redirect": "/sign-up.html"})
+
+    # Generate OTP
+    otp_code = generate_otp()
+    expiry = datetime.utcnow() + timedelta(minutes=5)
+
+    session["otp_email"] = email
+    session["otp_code"] = otp_code
+    session["otp_expiry"] = expiry.isoformat()
+    session["otp_attempts"] = 0
+    session["otp_round"] = 1
+
+    # Send OTP via email
+    send_email(
+        email, "Your OTP Code", f"Your OTP is {otp_code}. It expires in 5 minutes."
+    )
+
+    return jsonify({"success": True, "redirect": "/forgot-password/otp"})
+
+
+@app.route("/forgot-password/otp", methods=["GET", "POST"])
+def forgot_password_otp():
+    if request.method == "GET":
+        return render_template("forgot-password-otp.html")
+
+    data = request.get_json(silent=True)
+    if data:
+        otp_input = data.get("otp")
+    else:
+        otp_input = request.form.get("otp")
+
+    otp_code = session.get("otp_code")
+
+    otp_expiry_str = session.get("otp_expiry")
+    if otp_expiry_str is None:
+        return jsonify({"error": "OTP not found or expired"}), 400
+
+    try:
+        otp_expiry = datetime.fromisoformat(otp_expiry_str)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid OTP timestamp"}), 400
+
+    attempts = session.get("otp_attempts", 0)
+    round_num = session.get("otp_round", 1)
+
+    if datetime.utcnow() > otp_expiry:
+        return jsonify(
+            {"success": False, "error": "OTP expired. Please request a new one."}
+        )
+
+    if attempts >= 3:
+        if round_num >= 3:
+            return jsonify({"success": False, "redirect": "sign-up.html"})
+        # resend new otp
+        new_otp = generate_otp()
+        session["otp_code"] = new_otp
+        session["otp_expiry"] = (datetime.utcnow() + timedelta(minutes=5)).isoformat()
+        session["otp_attempts"] = 0
+        session["otp_round"] = round_num + 1
+        send_email(session["otp_email"], "Your OTP Code", f"Your OTP is {new_otp}")
+        return jsonify(
+            {"success": False, "error": "Too many attempts. A new OTP has been sent."}
+        )
+
+    if otp_input == otp_code:
+        return jsonify({"success": True, "redirect": "/forgot-password/new"})
+
+    # wrong code
+    session["otp_attempts"] = attempts + 1
+    return jsonify({"success": False, "error": "Incorrect code. Try again."})
+
+
+@app.route("/forgot-password/new", methods=["GET", "POST"])
+def forgot_password_new():
+    if request.method == "GET":
+        return render_template("forgot-password-new.html")
+
+    email = session.get("otp_email")
+
+    data = request.get_json(silent=True)
+    if data:
+        new_pass = data.get("password")
+    else:
+        new_pass = request.form.get("password")
+
+    if not email:
+        return jsonify({"success": False, "redirect": "/sign-in.html"})
+
+    # if new_pass != confirm_pass or len(new_pass) < 6:
+    #     return jsonify({"success": False, "error": "Passwords invalid or don't match."})
+
+    user = User.query.filter_by(user_email=email).first()
+    if not user:
+        return jsonify({"success": False, "redirect": "/sign-up.html"})
+
+    if not new_pass or not isinstance(new_pass, str):
+        return jsonify({"error": "Missing or invalid new password"}), 400
+
+    user.user_password_hash = generate_password_hash(new_pass)
+    db.session.commit()
+
+    # clear session data
+    session.pop("otp_email", None)
+    session.pop("otp_code", None)
+    session.pop("otp_expiry", None)
+    session.pop("otp_attempts", None)
+    session.pop("otp_round", None)
+
+    return jsonify({"success": True, "redirect": "/sign-in.html"})
+
+
+@app.route("/sign-up", methods=["POST", "GET"])
+def sign_up():
+    if request.method == "POST":
+        # Detect JSON vs traditional form POST
+        if request.is_json:
+            data = request.get_json()
+            email = data.get("email", "").strip().lower()
+            password = data.get("password", "")
+            role = data.get("role", "").upper()
+        else:
+            email = request.form.get("email", "").strip().lower()
+            password = request.form.get("password", "")
+            role = request.form.get("role", "").upper()
+
+        # Basic validation
+        if not email or not password or not role:
+            msg = "Email, password, and role are required."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
+
+        # Email format check
+        if not is_valid_dut_email(email):
+            msg = "Please use a valid DUT email (@dut.ac.za or @dut4life.ac.za)."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
+
+        # Role whitelist check
+        valid_roles = ["STUDENT", "STAFF"]
+        if role not in valid_roles:
+            msg = "Invalid role selected."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 400
+            else:
+                return msg, 400
+
+        # Check for existing email
+        if email_exists(email):
+            msg = "Email already registered."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 409
+            else:
+                return msg, 409
+
+        # All validations passed — create user
         try:
-            db.session.add(new_task)
+            new_user = User()
+            new_user.user_email = email
+            new_user.user_role = User.UserRole[role]
+            new_user.set_pass_hash(password)
+
+            db.session.add(new_user)
             db.session.commit()
 
-            # Return appropriate response based on request type
             if request.is_json:
-                return jsonify(
-                    {
-                        "success": True,
-                        "message": "Data submitted successfully",
-                        "data": {
-                            "id": new_task.id,
-                            "name": new_task.name,
-                            "email": new_task.email,
-                            "created": new_task.created.isoformat(),
-                        },
-                    }
-                )
+                return jsonify({"success": True}), 201
             else:
-                return redirect("/")
+                return redirect("/sign-in.html")
+
+        except Exception as e:
+            # Log full error on server, but return safe message to client
+            print(f"ERROR: {e}")
+            msg = "An unexpected error occurred. Please try again."
+            if request.is_json:
+                return jsonify({"success": False, "message": msg}), 500
+            else:
+                return msg, 500
+
+    # GET request → render signup page
+    return render_template("sign-up.html")
+
+
+@app.route("/report", methods=["POST", "GET"])
+def report():
+    if "user_id" not in session:
+        return redirect("/sign-in")
+        # return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    if request.method == "POST":
+        # Detect JSON vs traditional form POST
+        if request.is_json:
+            data = request.get_json()
+            category = data.get("category")
+            type = data.get("type")
+            campus = data.get("campus")
+            block = data.get("block")
+            nearest_class = data.get("nearestClass")
+            notes = data.get("notes")
+        else:
+            category = request.form.get("category")
+            type = request.form.get("type")
+            campus = request.form.get("campus")
+            block = request.form.get("block")
+            nearest_class = request.form.get("nearestClass")
+            notes = request.form.get("notes")
+
+        try:
+            new_report = Report()
+            new_report.user_id = session["user_id"]
+            new_report.category = category
+            new_report.campus = campus
+            new_report.block = block
+            new_report.notes = notes
+            new_report.type = type
+            new_report.nearest_class = nearest_class
+
+            db.session.add(new_report)
+            db.session.commit()
+
+            msg = "Report submitted successfully."
+            if request.is_json:
+                return jsonify({"success": True, "message": msg}), 200
+            else:
+                return redirect("/dashboard")
 
         except Exception as e:
             print(f"ERROR: {e}")
-            error_msg = str(e)
-
-            # Handle specific database errors
-            if "UNIQUE constraint failed" in error_msg:
-                error_msg = "This email address is already registered"
-
+            msg = "An unexpected error occurred. Please try again."
             if request.is_json:
-                return jsonify({"success": False, "error": error_msg}), 400
+                return jsonify({"success": False, "message": msg}), 500
             else:
-                return f"ERROR: {error_msg}", 400
+                return msg, 500
 
-    return render_template("form.html")
+    return render_template("report.html")
+
+
+@app.route("/profile", methods=["GET"])
+def profile():
+    if "user_id" not in session:
+        # Redirect for normal page load, JSON for fetch
+        if (
+            request.accept_mimetypes.accept_json
+            and not request.accept_mimetypes.accept_html
+        ):
+            return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+
+    user = User.query.get(session["user_id"])
+    if not user:
+        if (
+            request.accept_mimetypes.accept_json
+            and not request.accept_mimetypes.accept_html
+        ):
+            return jsonify({"success": False, "message": "User not found"}), 404
+        return "User not found", 404
+
+    # Determine gender placeholder
+    gender = getattr(user, "gender", None) or random.choice(["male", "female"])
+
+    # Check if this is a JSON request (AJAX fetch)
+    if (
+        request.accept_mimetypes.accept_json
+        and not request.accept_mimetypes.accept_html
+    ):
+        return jsonify(
+            {
+                "success": True,
+                "id": user.user_id,
+                "email": user.user_email,
+                "fullName": "",  # placeholder
+                "surname": "",  # placeholder
+                "gender": gender,
+                "role": user.user_role.value,
+                "passwordLength": 12,  # placeholder, TODO: Calculate the real length before hashing
+            }
+        )
+
+    # Otherwise, render the HTML page
+    return render_template("profile.html")
+
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    if "user_id" not in session:
+        # redirect to login for page loads
+        if "application/json" in request.headers.get("Accept", ""):
+            return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+
+    # If it's a fetch request asking for JSON
+    if "application/json" in request.headers.get("Accept", ""):
+        try:
+            user_id = session["user_id"]
+            reports = (
+                Report.query.filter_by(user_id=user_id)
+                .order_by(Report.report_id.desc())
+                .all()
+            )
+
+            reports_list = []
+            for r in reports:
+                reports_list.append(
+                    {
+                        "id": r.report_id,
+                        "category": r.category,
+                        "type": r.type,
+                        "status": getattr(r, "status", "pending"),
+                        "notes": r.notes,
+                        "date": r.created_at.strftime("%Y-%m-%d")
+                        if hasattr(r, "created_at")
+                        else "",
+                        "time": r.created_at.strftime("%H:%M")
+                        if hasattr(r, "created_at")
+                        else "",
+                    }
+                )
+
+            return jsonify({"success": True, "reports": reports_list}), 200
+
+        except Exception as e:
+            print(f"ERROR fetching user reports: {e}")
+            return jsonify({"success": False, "message": "Server error"}), 500
+
+    # Otherwise render the dashboard page
+    return render_template("dashboard.html")
+
+
+@app.route("/reset-db")
+def reset_db():
+    db.drop_all()
+    db.create_all()
+    return "Database reset!"
+
+
+@app.route("/test-report")
+def test_last_report():
+    last_report = Report.query.order_by(Report.report_id.desc()).first()
+    if last_report is None:
+        return {"error": "No reports found"}
+
+    user = User.query.get(last_report.user_id)
+
+    return {
+        "report": {
+            "id": last_report.report_id,
+            "category": last_report.category,
+            "type": last_report.type,
+            "campus": last_report.campus,
+            "block": last_report.block,
+            "nearest_class": last_report.nearest_class,
+            "notes": last_report.notes,
+            "user_id": last_report.user_id,
+        },
+        "user": {
+            "id": user.user_id if user else None,
+            "email": user.user_email if user else None,
+            "role": user.user_role.value if user else None,
+        },
+    }
 
 
 if __name__ == "__main__":

@@ -1,0 +1,123 @@
+{% extends 'main-base.html' %} {% block head %}
+
+<title>Profile</title>
+
+{% endblock %} {% block body %}
+
+<main class="flex-1 flex items-center justify-center px-4 py-10">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl p-8">
+    <!-- Profile and Edit Row -->
+    <div class="flex justify-between items-center mb-6">
+      <a
+        href="Profile(DESKTOP).html"
+        class="text-xl font-bold text-indigo-700 select-none"
+        >Profile</a
+      >
+      <button
+        id="editBtn"
+        class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition-all font-semibold"
+      >
+        Edit
+      </button>
+    </div>
+
+    <!-- Profile Info -->
+    <form id="profileForm" class="space-y-6">
+      <!-- DUT ID (non-editable) -->
+      <div>
+        <label class="block text-gray-600 font-medium">ID</label>
+        <span
+          id="idDisplay"
+          class="block text-lg font-semibold text-gray-900"
+        ></span>
+      </div>
+
+      <!-- EMAIL (non-editable) -->
+      <div>
+        <label class="block text-gray-600 font-medium">Email</label>
+        <span
+          id="emailDisplay"
+          class="block text-lg font-semibold text-gray-900"
+        ></span>
+      </div>
+
+      <!-- FULL NAME -->
+      <div>
+        <label class="block text-gray-600 font-medium">Full Name</label>
+        <span
+          id="fullNameDisplay"
+          class="block text-lg font-semibold text-gray-900"
+        ></span>
+        <input
+          id="fullNameInput"
+          name="fullName"
+          type="text"
+          class="hidden mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <!-- SURNAME -->
+      <div>
+        <label class="block text-gray-600 font-medium">Surname</label>
+        <span
+          id="surnameDisplay"
+          class="block text-lg font-semibold text-gray-900"
+        ></span>
+        <input
+          id="surnameInput"
+          name="surname"
+          type="text"
+          class="hidden mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <!-- GENDER -->
+      <div>
+        <label class="block text-gray-600 font-medium">Gender</label>
+        <span
+          id="genderDisplay"
+          class="block text-lg font-semibold text-gray-900"
+        ></span>
+        <select
+          id="genderInput"
+          name="gender"
+          class="hidden mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="">Select Gender</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="other">Other</option>
+          <option value="preferNotToSay">Prefer not to say</option>
+        </select>
+      </div>
+
+      <!-- ROLE (non-editable) -->
+      <div>
+        <label class="block text-gray-600 font-medium">Role</label>
+        <span
+          id="roleDisplay"
+          class="block text-lg font-semibold text-gray-900"
+        ></span>
+      </div>
+
+      <!-- PASSWORD -->
+      <div>
+        <label class="block text-gray-600 font-medium">Password</label>
+        <span
+          id="passwordDisplay"
+          class="block text-lg font-semibold text-gray-900 select-none"
+        ></span>
+        <button
+          id="changePasswordBtn"
+          type="button"
+          class="mt-2 text-indigo-600 font-semibold hover:underline"
+        >
+          Change Password
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script src="static/js/profile.js"></script>
+{% endblock %}
