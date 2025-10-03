@@ -1,6 +1,7 @@
 import enum
 import random
 import smtplib
+import socket
 from datetime import datetime, timedelta
 
 from email_validator import EmailNotValidError, validate_email
@@ -22,12 +23,18 @@ def generate_otp():
 
 
 def send_email(to_email, subject, body):
+    try:
+        socket.create_connection(("smtp.mailtrap.io", 587), timeout=5)
+        print("Can reach Mailtrap SMTP!")
+    except Exception as e:
+        print("Cannot connect to Mailtrap:", e)
+
     """
     Simplest option: use Gmail SMTP or Mailtrap.io (free).
     For a school project you can hardcode Mailtrap credentials.
     """
-    from_email = "your_test_account@mailtrap.io"
-    from_password = "your_password"
+    from_email = "aa66b1448e7173"
+    from_password = "370f53b9a831dc"
 
     try:
         with smtplib.SMTP("smtp.mailtrap.io", 587) as server:
@@ -258,7 +265,7 @@ def forgot_password_email():
     user = User.query.filter_by(user_email=email).first()
 
     if not user:
-        return jsonify({"success": False, "redirect": "/sign-up.html"})
+        return jsonify({"success": False, "redirect": "/sign-up"})
 
     # Generate OTP
     otp_code = generate_otp()
@@ -330,6 +337,23 @@ def forgot_password_otp():
     return jsonify({"success": False, "error": "Incorrect code. Try again."})
 
 
+@app.route("/forgot-password/otp/resend", methods=["POST"])
+def resend_otp():
+    otp_email = session.get("otp_email")
+    if not otp_email:
+        return jsonify({"success": False, "message": "No email in session"}), 400
+
+    new_otp = generate_otp()
+    session["otp_code"] = new_otp
+    session["otp_expiry"] = (datetime.utcnow() + timedelta(minutes=5)).isoformat()
+    session["otp_attempts"] = 0
+    session["otp_round"] = session.get("otp_round", 1) + 1
+
+    send_email(otp_email, "Your OTP Code", f"Your OTP is {new_otp}")
+
+    return jsonify({"success": True, "message": f"New OTP sent to {otp_email}"})
+
+
 @app.route("/forgot-password/new", methods=["GET", "POST"])
 def forgot_password_new():
     if request.method == "GET":
@@ -344,14 +368,14 @@ def forgot_password_new():
         new_pass = request.form.get("password")
 
     if not email:
-        return jsonify({"success": False, "redirect": "/sign-in.html"})
+        return jsonify({"success": False, "redirect": "/sign-in"})
 
     # if new_pass != confirm_pass or len(new_pass) < 6:
     #     return jsonify({"success": False, "error": "Passwords invalid or don't match."})
 
     user = User.query.filter_by(user_email=email).first()
     if not user:
-        return jsonify({"success": False, "redirect": "/sign-up.html"})
+        return jsonify({"success": False, "redirect": "/sign-up"})
 
     if not new_pass or not isinstance(new_pass, str):
         return jsonify({"error": "Missing or invalid new password"}), 400
@@ -366,7 +390,7 @@ def forgot_password_new():
     session.pop("otp_attempts", None)
     session.pop("otp_round", None)
 
-    return jsonify({"success": True, "redirect": "/sign-in.html"})
+    return jsonify({"success": True, "redirect": "/sign-in"})
 
 
 @app.route("/sign-up", methods=["POST", "GET"])
