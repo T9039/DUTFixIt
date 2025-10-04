@@ -1,5 +1,4 @@
 *.backup
-*.db
 static/css/
 teams_login_selenium.py
-instance/
+instance/database.db
