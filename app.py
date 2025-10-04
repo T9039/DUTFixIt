@@ -1,8 +1,9 @@
-import enum
 import random
 import smtplib
 import socket
+import sqlite3
 from datetime import datetime, timedelta
+from enum import Enum
 
 from email_validator import EmailNotValidError, validate_email
 from flask import Flask, jsonify, redirect, render_template, request, session
@@ -48,9 +49,24 @@ def send_email(to_email, subject, body):
         return False
 
 
+def query_school_db(email, table):
+    conn = sqlite3.connect("instance/user_validate.db")
+    conn.row_factory = sqlite3.Row  # lets you access columns by name
+    cur = conn.cursor()
+    cur.execute(f"SELECT * FROM {table} WHERE email = ?", (email,))
+    result = cur.fetchone()
+    conn.close()
+    return result
+
+
+class UserRole(Enum):
+    STUDENT = "student"
+    ADMIN = "admin"
+    STAFF = "staff"
+    TECHNICIAN = "technician"
+
+
 # Data class(not the same thing) ~ row of data
-
-
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
     task_name = db.Column(db.String(50), nullable=False)
@@ -64,21 +80,19 @@ class Task(db.Model):
         return f"Request {self.task_id}"
 
 
+# Base User Model
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     user_email = db.Column(db.String(120), unique=True, nullable=False)
     user_created = db.Column(db.DateTime, default=datetime.utcnow)
     user_password_hash = db.Column(db.String(255), nullable=False)
 
-    # NEW: role field
-    class UserRole(enum.Enum):
-        STUDENT = "STUDENT"
-        STAFF = "STAFF"
-
     user_role = db.Column(db.Enum(UserRole), nullable=False)
 
-    def __repr__(self):
-        return f"User {self.user_id}"
+    # 🔽 New fields from validation DB
+    surname = db.Column(db.String(100))
+    initials = db.Column(db.String(10))
+    system_id = db.Column(db.String(50))
 
     def set_pass_hash(self, password):
         self.user_password_hash = generate_password_hash(password)
@@ -87,9 +101,95 @@ class User(db.Model):
         return check_password_hash(self.user_password_hash, password)
 
 
+# Student model
+
+
+class Student(User):
+    __tablename__ = "students"
+
+    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
+    student_number = db.Column(db.String(20), unique=True, nullable=False)
+    course = db.Column(db.String(100))
+    year = db.Column(db.Integer)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "student",
+    }
+
+    def __repr__(self):
+        return f"<Student {self.student_number}>"
+
+
+# Admin model
+
+
+class Admin(User):
+    __tablename__ = "admins"
+
+    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
+    department = db.Column(db.String(100))
+    # privileges = db.Column(db.String(200))  # e.g. 'full', 'limited', etc.
+
+    __mapper_args__ = {
+        "polymorphic_identity": "admin",
+    }
+
+    def __repr__(self):
+        return f"<Admin {self.user_email}>"
+
+
+# Staff model
+
+
+class Staff(User):
+    __tablename__ = "staff"
+
+    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
+    staff_id = db.Column(db.String(20), unique=True, nullable=False)
+    position = db.Column(db.String(100))
+    # office_location = db.Column(db.String(200))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "staff",
+    }
+
+    def __repr__(self):
+        return f"<Staff {self.staff_id}>"
+
+
+class Technician(User):
+    __tablename__ = "technicians"
+
+    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
+    tech_id = db.Column(db.String(20), unique=True, nullable=False)
+    specialization = db.Column(db.String(100))
+
+    # Relationship to reports
+    assigned_reports = db.relationship(
+        "Report",
+        back_populates="technician",
+        lazy="dynamic",
+        passive_deletes=True,  # ✅ allow proper ON DELETE behavior
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": "technician",
+    }
+
+    def __repr__(self):
+        return f"<Technician {self.tech_id}>"
+
+
 class Report(db.Model):
+    __tablename__ = "reports"
+
     report_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    # Technician assignment (NEW)
+    technician_id = db.Column(
+        db.Integer, db.ForeignKey("technicians.id"), nullable=True
+    )
 
     # Basic report info
     category = db.Column(db.String(50), nullable=False)
@@ -106,6 +206,9 @@ class Report(db.Model):
 
     # Timestamp
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship
+    technician = db.relationship("Technician", back_populates="assigned_reports")
 
     def __repr__(self):
         return f"<Report {self.report_id} by User {self.user_id}>"
@@ -396,75 +499,84 @@ def forgot_password_new():
 @app.route("/sign-up", methods=["POST", "GET"])
 def sign_up():
     if request.method == "POST":
-        # Detect JSON vs traditional form POST
-        if request.is_json:
-            data = request.get_json()
-            email = data.get("email", "").strip().lower()
-            password = data.get("password", "")
-            role = data.get("role", "").upper()
-        else:
-            email = request.form.get("email", "").strip().lower()
-            password = request.form.get("password", "")
-            role = request.form.get("role", "").upper()
+        data = request.get_json(silent=True) or {}
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+        role = data.get("role", "").upper()
 
         # Basic validation
         if not email or not password or not role:
-            msg = "Email, password, and role are required."
-            if request.is_json:
-                return jsonify({"success": False, "message": msg}), 400
-            else:
-                return msg, 400
+            return jsonify({"success": False, "message": "Missing fields."}), 400
 
-        # Email format check
         if not is_valid_dut_email(email):
-            msg = "Please use a valid DUT email (@dut.ac.za or @dut4life.ac.za)."
-            if request.is_json:
-                return jsonify({"success": False, "message": msg}), 400
-            else:
-                return msg, 400
+            return jsonify({"success": False, "message": "Invalid DUT email."}), 400
 
-        # Role whitelist check
-        valid_roles = ["STUDENT", "STAFF"]
-        if role not in valid_roles:
-            msg = "Invalid role selected."
-            if request.is_json:
-                return jsonify({"success": False, "message": msg}), 400
-            else:
-                return msg, 400
+        # Match role ↔ domain
+        if email.endswith("@dut4life.ac.za") and role != "STUDENT":
+            return jsonify(
+                {"success": False, "message": "DUT4Life emails are for students only."}
+            ), 400
+        if email.endswith("@dut.ac.za") and role == "STUDENT":
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "DUT staff emails cannot register as students.",
+                }
+            ), 400
 
-        # Check for existing email
+        # Map roles to school tables
+        table_mapping = {
+            "STUDENT": "students",
+            "STAFF": "staff",
+            "ADMIN": "admins",
+            "TECHNICIAN": "technicians",
+        }
+        if role not in table_mapping:
+            return jsonify({"success": False, "message": "Invalid role selected."}), 400
+
+        # Check if already registered
         if email_exists(email):
-            msg = "Email already registered."
-            if request.is_json:
-                return jsonify({"success": False, "message": msg}), 409
-            else:
-                return msg, 409
+            return jsonify(
+                {"success": False, "message": "Email already registered."}
+            ), 409
 
-        # All validations passed — create user
+        # Query the validation DB
+        record = query_school_db(email, table_mapping[role])
+        if not record:
+            return jsonify(
+                {"success": False, "message": "Email not found in school records."}
+            ), 404
+
+        # Extract profile info
+        surname = record["surname"]
+        initials = record["initials"]
+        record_id = record["id"]
+
+        # Generate system ID
+        student_number = email.split("@")[0][:8]
+        system_id = f"{student_number}#{record_id}"
+
         try:
             new_user = User()
             new_user.user_email = email
-            new_user.user_role = User.UserRole[role]
+            new_user.user_role = UserRole[role.upper()]  # use the global enum
+            new_user.surname = surname
+            new_user.initials = initials
+            new_user.system_id = system_id
             new_user.set_pass_hash(password)
 
             db.session.add(new_user)
             db.session.commit()
 
-            if request.is_json:
-                return jsonify({"success": True}), 201
-            else:
-                return redirect("/sign-in.html")
+            return jsonify(
+                {"success": True, "message": "Account created successfully."}
+            ), 201
 
         except Exception as e:
-            # Log full error on server, but return safe message to client
-            print(f"ERROR: {e}")
-            msg = "An unexpected error occurred. Please try again."
-            if request.is_json:
-                return jsonify({"success": False, "message": msg}), 500
-            else:
-                return msg, 500
+            print(f"Signup error: {e}")
+            db.session.rollback()
+            return jsonify({"success": False, "message": "Internal server error."}), 500
 
-    # GET request → render signup page
     return render_template("sign-up.html")
 
 
