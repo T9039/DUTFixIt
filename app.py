@@ -49,7 +49,7 @@ def send_email(to_email, subject, body):
         return False
 
 
-def query_school_db(email, table):
+def validate_db(email, table):
     conn = sqlite3.connect("instance/user_validate.db")
     conn.row_factory = sqlite3.Row  # lets you access columns by name
     cur = conn.cursor()
@@ -84,15 +84,12 @@ class Task(db.Model):
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     user_email = db.Column(db.String(120), unique=True, nullable=False)
-    user_created = db.Column(db.DateTime, default=datetime.utcnow)
     user_password_hash = db.Column(db.String(255), nullable=False)
-
     user_role = db.Column(db.Enum(UserRole), nullable=False)
-
-    # 🔽 New fields from validation DB
     surname = db.Column(db.String(100))
     initials = db.Column(db.String(10))
-    system_id = db.Column(db.String(50))
+    system_id = db.Column(db.String(20))
+    user_created = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_pass_hash(self, password):
         self.user_password_hash = generate_password_hash(password)
@@ -101,95 +98,16 @@ class User(db.Model):
         return check_password_hash(self.user_password_hash, password)
 
 
-# Student model
-
-
-class Student(User):
-    __tablename__ = "students"
-
-    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
-    student_number = db.Column(db.String(20), unique=True, nullable=False)
-    course = db.Column(db.String(100))
-    year = db.Column(db.Integer)
-
-    __mapper_args__ = {
-        "polymorphic_identity": "student",
-    }
-
-    def __repr__(self):
-        return f"<Student {self.student_number}>"
-
-
-# Admin model
-
-
-class Admin(User):
-    __tablename__ = "admins"
-
-    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
-    department = db.Column(db.String(100))
-    # privileges = db.Column(db.String(200))  # e.g. 'full', 'limited', etc.
-
-    __mapper_args__ = {
-        "polymorphic_identity": "admin",
-    }
-
-    def __repr__(self):
-        return f"<Admin {self.user_email}>"
-
-
-# Staff model
-
-
-class Staff(User):
-    __tablename__ = "staff"
-
-    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
-    staff_id = db.Column(db.String(20), unique=True, nullable=False)
-    position = db.Column(db.String(100))
-    # office_location = db.Column(db.String(200))
-
-    __mapper_args__ = {
-        "polymorphic_identity": "staff",
-    }
-
-    def __repr__(self):
-        return f"<Staff {self.staff_id}>"
-
-
-class Technician(User):
-    __tablename__ = "technicians"
-
-    id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
-    tech_id = db.Column(db.String(20), unique=True, nullable=False)
-    specialization = db.Column(db.String(100))
-
-    # Relationship to reports
-    assigned_reports = db.relationship(
-        "Report",
-        back_populates="technician",
-        lazy="dynamic",
-        passive_deletes=True,  # ✅ allow proper ON DELETE behavior
-    )
-
-    __mapper_args__ = {
-        "polymorphic_identity": "technician",
-    }
-
-    def __repr__(self):
-        return f"<Technician {self.tech_id}>"
-
-
 class Report(db.Model):
     __tablename__ = "reports"
 
     report_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
 
     # Technician assignment (NEW)
-    technician_id = db.Column(
-        db.Integer, db.ForeignKey("technicians.id"), nullable=True
-    )
+    # technician_id = db.Column(
+    #     db.Integer, db.ForeignKey("technicians.id"), nullable=True
+    # )
 
     # Basic report info
     category = db.Column(db.String(50), nullable=False)
@@ -208,7 +126,7 @@ class Report(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationship
-    technician = db.relationship("Technician", back_populates="assigned_reports")
+    # technician = db.relationship("Technician", back_populates="assigned_reports")
 
     def __repr__(self):
         return f"<Report {self.report_id} by User {self.user_id}>"
@@ -511,7 +429,7 @@ def sign_up():
         if not is_valid_dut_email(email):
             return jsonify({"success": False, "message": "Invalid DUT email."}), 400
 
-        # Match role ↔ domain
+        # Email ↔ role domain check
         if email.endswith("@dut4life.ac.za") and role != "STUDENT":
             return jsonify(
                 {"success": False, "message": "DUT4Life emails are for students only."}
@@ -524,42 +442,39 @@ def sign_up():
                 }
             ), 400
 
-        # Map roles to school tables
+        # Check main user DB
+        if email_exists(email):
+            return jsonify(
+                {"success": False, "message": "Email already registered."}
+            ), 409
+
+        # Query validation DB
         table_mapping = {
             "STUDENT": "students",
             "STAFF": "staff",
             "ADMIN": "admins",
             "TECHNICIAN": "technicians",
         }
-        if role not in table_mapping:
-            return jsonify({"success": False, "message": "Invalid role selected."}), 400
 
-        # Check if already registered
-        if email_exists(email):
-            return jsonify(
-                {"success": False, "message": "Email already registered."}
-            ), 409
+        table = table_mapping.get(role)
+        result = validate_db(email, table)
 
-        # Query the validation DB
-        record = query_school_db(email, table_mapping[role])
-        if not record:
+        if not result:
             return jsonify(
                 {"success": False, "message": "Email not found in school records."}
             ), 404
 
-        # Extract profile info
-        surname = record["surname"]
-        initials = record["initials"]
-        record_id = record["id"]
-
-        # Generate system ID
+        surname = result["surname"]
+        initials = result["initials"]
+        record_id = result["id"]
         student_number = email.split("@")[0][:8]
         system_id = f"{student_number}#{record_id}"
 
+        # Create User
         try:
             new_user = User()
             new_user.user_email = email
-            new_user.user_role = UserRole[role.upper()]  # use the global enum
+            new_user.user_role = UserRole[role]
             new_user.surname = surname
             new_user.initials = initials
             new_user.system_id = system_id
@@ -568,15 +483,13 @@ def sign_up():
             db.session.add(new_user)
             db.session.commit()
 
-            return jsonify(
-                {"success": True, "message": "Account created successfully."}
-            ), 201
+            return jsonify({"success": True, "message": "Account created."}), 201
 
         except Exception as e:
             print(f"Signup error: {e}")
-            db.session.rollback()
             return jsonify({"success": False, "message": "Internal server error."}), 500
 
+    # GET → render signup page
     return render_template("sign-up.html")
 
 
