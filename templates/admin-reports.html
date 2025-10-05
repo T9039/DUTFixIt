@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FIX-IT DUT - Admin Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* kept your styles, but restored the original gradient color */
+      body {
+        background: linear-gradient(
+          120deg,
+          hsl(228, 96%, 89%) 0%,
+          #e0e7ff 100%
+        );
+        min-height: 100vh;
+        font-family:
+          Inter,
+          Roboto,
+          system-ui,
+          -apple-system;
+      }
+      .dashboard-shape {
+        position: fixed;
+        top: -120px;
+        left: -120px;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.22; /* restored original intensity */
+        filter: blur(40px);
+        width: 100vw;
+        height: 100vh;
+        background:
+          radial-gradient(circle at 25% 25%, #6366f1 0%, transparent 70%),
+          radial-gradient(circle at 75% 75%, #818cf8 0%, transparent 70%);
+      }
+      .fade-in {
+        animation: fadeInUp 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .card-static {
+        transition: background 0.18s;
+      }
+      .card-static:hover {
+        background: #e0e7ff;
+        cursor: pointer;
+      }
+      .status-badge {
+        padding: 0.3em 1em;
+        border-radius: 0.5em;
+        font-weight: 700;
+        font-size: 0.92em;
+        display: inline-block;
+      }
+      .status-pending {
+        background: #fef08a;
+        color: #92400e;
+      }
+      .status-in-progress {
+        background: #a5b4fc;
+        color: #3730a3;
+      }
+      .status-done {
+        background: #bbf7d0;
+        color: #166534;
+      }
+      .modal-bg {
+        position: fixed;
+        inset: 0;
+        background: rgba(33, 33, 33, 0.32);
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-box {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
+        max-width: 34rem;
+        width: 96vw;
+        max-height: 94vh;
+        overflow: auto;
+        position: relative;
+        z-index: 70;
+      }
+      .sidebar-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(33, 33, 33, 0.35);
+        display: none;
+      }
+      .sidebar-box {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        max-width: 22rem;
+        background: #fff;
+        box-shadow: -4px 0 30px rgba(99, 102, 241, 0.2);
+        z-index: 51;
+        transition: transform 0.25s;
+        border-top-left-radius: 1rem;
+        border-bottom-left-radius: 1rem;
+        padding: 2rem 1.2rem;
+        transform: translateX(120%);
+      }
+      .sidebar-bg.open {
+        display: block;
+      }
+      .sidebar-box.open {
+        transform: translateX(0);
+      }
+      .dropdown-list {
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin-top: 0.25rem;
+        z-index: 20;
+        background: #fff;
+        border-radius: 0.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+        max-height: 16rem;
+        overflow: auto;
+      }
+      .dropdown-list-row {
+        font-family: monospace;
+        font-size: 1em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5em 1em;
+        cursor: pointer;
+      }
+      .dropdown-list-row:hover,
+      .dropdown-list-row.selected {
+        background: #e0e7ff;
+      }
+      .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        width: 100%;
+      }
+      @media (max-width: 640px) {
+        .filter-row > * {
+          flex: 1 1 120px;
+          min-width: 0;
+        }
+        .filter-row input {
+          flex: 2 1 160px;
+          min-width: 100px;
+        }
+        .filter-row button {
+          flex: 0 0 auto;
+        }
+      }
+      /* Sidebar */
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.05rem;
+        padding: 0.9rem;
+        border-radius: 0.7rem;
+        color: #3730a3;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.12s;
+        margin-bottom: 0.4rem;
+      }
+      .sidebar-link:hover {
+        background: #e0e7ff;
+        color: #4f46e5;
+      }
+      .sidebar-profile {
+        padding: 1rem;
+        background: #e0e7ff;
+        color: #3730a3;
+        border-radius: 0.7rem;
+        font-weight: 500;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        width: 100%;
+      }
+      .sidebar-logout {
+        margin-top: 1.6rem;
+        padding: 0.9rem;
+        background: #f8fafc;
+        color: #b91c1c;
+        border-radius: 0.7rem;
+        font-weight: 500;
+        width: 100%;
+      }
+      .sidebar-logout:hover {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .notification-counter {
+        background: #dc2626;
+        color: white;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.12rem 0.5rem;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen font-sans bg-[linear-gradient(120deg,hsl(228,96%,89%)_0%,#e0e7ff_100%)] transition-colors duration-500"
+  >
+    <div class="dashboard-shape" aria-hidden="true"></div>
+
+    <header
+      class="bg-indigo-600 flex items-center justify-between py-3 sm:py-4 px-4 text-white"
+    >
+      <div class="flex items-center gap-3 select-none">
+        <img src="dut.png" alt="DUT" class="h-8" /><span
+          class="font-extrabold text-lg"
+          >FIX-IT DUT</span
+        >
+      </div>
+      <button
+        id="sidebarOpenBtn"
+        class="p-2 rounded-full hover:bg-indigo-700"
+        aria-label="Open sidebar"
+      >
+        ☰
+      </button>
+    </header>
+
+    <!-- Sidebar Background -->
+    <div id="sidebarBg" class="sidebar-bg"></div>
+
+    <!-- Sidebar Box -->
+    <nav id="sidebarBox" class="sidebar-box" aria-hidden="true">
+      <button
+        id="sidebarCloseBtn"
+        class="absolute top-3 left-3 text-gray-400 hover:text-gray-900 text-2xl font-bold bg-transparent border-none"
+      >
+        &times;
+      </button>
+      <div class="mt-6 flex flex-col gap-3">
+        <a
+          href="Admin-profile.html"
+          id="sidebarProfileBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View profile"
+        >
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="#4f46e5"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.25a8.25 8.25 0 0 1 15.998 0 .75.75 0 0 1-.75.75h-14.5a.75.75 0 0 1-.748-.75Z"
+            />
+          </svg>
+          <span>Profile</span>
+        </a>
+
+        <a
+          href="Admin-dashboard.html"
+          id="sidebarDashboardBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View dashboard"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#4f46e5"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a
+          href="Admin-report.html"
+          id="sidebarReportBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View reports"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M13.887 3.182c.396.037.79.08 1.183.128C16.194 3.45 17 4.414 17 5.517V16.75A2.25 2.25 0 0 1 14.75 19h-9.5A2.25 2.25 0 0 1 3 16.75V5.517c0-1.103.806-2.068 1.93-2.207.393-.048.787-.09 1.183-.128A3.001 3.001 0 0 1 9 1h2c1.373 0 2.531.923 2.887 2.182ZM7.5 4A1.5 1.5 0 0 1 9 2.5h2A1.5 1.5 0 0 1 12.5 4v.5h-5V4Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Report Page</span>
+        </a>
+
+        <a
+          href="Admin-notification2.html"
+          id="sidebarNotificationsBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium relative"
+          aria-label="View notifications"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Notifications</span>
+          <span
+            id="notificationCounter"
+            class="absolute right-3 top-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5"
+            style="display: none"
+          ></span>
+        </a>
+
+        <a
+          href="Technician.html"
+          id="sidebarTechniciansBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View technicians"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path d="M10 3a3 3 0 11-6 0 3 3 0 016 0Z" />
+            <path
+              fill-rule="evenodd"
+              d="M4 8a4 4 0 018 0v.5a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 014 8.5V8Z"
+              clip-rule="evenodd"
+            />
+            <path d="M14 9a3 3 0 100 6 3 3 0 000-6Z" />
+            <path
+              d="M10.5 15.134a4.492 4.492 0 01-.5-2.134v-.5A1.5 1.5 0 0111.5 11h5a1.5 1.5 0 011.5 1.5v.5a4.5 4.5 0 01-.5 2.134A5.978 5.978 0 0014 17a5.978 5.978 0 00-3.5-1.866Z"
+            />
+          </svg>
+          <span>Technicians</span>
+        </a>
+
+        <button
+          id="sidebarLogoutBtn"
+          type="button"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-red-100 text-red-800 font-medium w-full"
+          aria-label="Logout"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#dc2626"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M17 4.25A2.25 2.25 0 0 0 14.75 2h-5.5A2.25 2.25 0 0 0 7 4.25v2a.75.75 0 0 0 1.5 0v-2a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1-.75-.75v-2a.75.75 0 0 0-1.5 0v2A2.25 2.25 0 0 0 9.25 18h5.5A2.25 2.25 0 0 0 17 15.75V4.25Z"
+              clip-rule="evenodd"
+            />
+            <path
+              fill-rule="evenodd"
+              d="M14 10a.75.75 0 0 0-.75-.75H3.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114l-1.048-.943h9.546A.75.75 0 0 0 14 10Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </nav>
+
+    <main
+      class="max-w-7xl mx-auto mt-6 sm:mt-10 px-4 pb-12 fade-in relative z-10"
+    >
+      <h1 class="text-xl sm:text-2xl font-bold mb-6">
+        All Reported Maintenance Requests
+      </h1>
+
+      <section class="mb-8 filter-row">
+        <select id="filterStatus" class="rounded-md border p-2 shadow-sm">
+          <option value="">Status: All</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+
+        <select id="filterCategory" class="rounded-md border p-2 shadow-sm">
+          <option value="">Category: All</option>
+          <option value="Electrical">Electrical</option>
+          <option value="Plumbing">Plumbing</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="General / Other">General / Other</option>
+        </select>
+
+        <select
+          id="filterType"
+          class="rounded-md border p-2 shadow-sm"
+          disabled
+        >
+          <option value="">Type: All</option>
+        </select>
+
+        <button id="clearFilters" class="px-3 py-2 bg-gray-300 rounded shadow">
+          Clear Filters
+        </button>
+
+        <input
+          id="filterSearch"
+          type="text"
+          placeholder="Search by Ref, Desc, Campus..."
+          class="rounded-md border p-2 shadow-sm w-32 sm:w-56"
+        />
+      </section>
+
+      <div
+        id="requestsGrid"
+        class="grid grid-cols-1 sm:grid-cols-2 gap-7"
+      ></div>
+    </main>
+
+    <!-- Modal -->
+    <div id="modalBg" class="modal-bg" style="display: none">
+      <div class="modal-box">
+        <button
+          id="closeModal"
+          class="absolute top-2 right-4 text-gray-400 text-2xl"
+        >
+          &times;
+        </button>
+        <h2 class="font-bold text-lg mb-3">Edit Request</h2>
+
+        <form id="editForm" class="space-y-4" autocomplete="off">
+          <div>
+            <span class="font-semibold">Ref No:</span>
+            <span id="editRef"></span>
+          </div>
+
+          <div>
+            <label class="font-semibold block mb-1" for="editCategory"
+              >Category</label
+            >
+            <select
+              id="editCategory"
+              class="w-full rounded-md border p-2"
+              required
+            >
+              <option value="" disabled>Select a category</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Plumbing">Plumbing</option>
+              <option value="Infrastructure">Infrastructure</option>
+              <option value="General / Other">General / Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="font-semibold block mb-1" for="editType">Type</label>
+            <select id="editType" class="w-full rounded-md border p-2" required>
+              <option value="" disabled>Select a type</option>
+            </select>
+          </div>
+
+          <!-- Technician dropdown populated from dut_technicians_v1 -->
+          <div>
+            <div class="relative" style="max-width: 400px">
+              <button
+                id="customTechDropdownBtn"
+                type="button"
+                class="w-full font-mono border rounded-md p-2 text-left flex justify-between items-center bg-white"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+              >
+                <span id="customTechSelectedName">Unassigned</span>
+                <span id="customTechSelectedCount" class="pl-6">0</span>
+                <svg
+                  class="ml-2 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              <div
+                id="customTechDropdownList"
+                class="dropdown-list hidden"
+                role="listbox"
+                aria-label="Technician list"
+              >
+                <!-- options rendered here -->
+              </div>
+            </div>
+            <div class="mt-1 text-xs text-gray-500 font-mono">
+              Select technician (shows current assigned request count).
+            </div>
+          </div>
+
+          <div>
+            <label class="font-semibold block mb-1" for="editStatus"
+              >Status</label
+            >
+            <select
+              id="editStatus"
+              class="w-full rounded-md border p-2"
+              required
+            >
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="font-semibold block mb-1" for="editDesc"
+              >Description</label
+            >
+            <textarea
+              id="editDesc"
+              maxlength="500"
+              required
+              rows="4"
+              class="w-full rounded-md border p-2"
+            ></textarea>
+            <span class="char-count" id="charCount">0/500</span>
+          </div>
+
+          <button
+            type="submit"
+            class="bg-indigo-600 text-white px-6 py-2 rounded"
+          >
+            Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin-reports.js') }}"></script>
+  </body>
+</html>
