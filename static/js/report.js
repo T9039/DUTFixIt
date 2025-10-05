@@ -268,7 +268,7 @@ $("reportForm").addEventListener("submit", async (e) => {
   }
 
   try {
-    const res = await fetch("/report", {
+    const res = await fetch("/user/report", {
       method: "POST",
       body: formData, // No need for headers, fetch sets it for FormData
     });
@@ -282,7 +282,7 @@ $("reportForm").addEventListener("submit", async (e) => {
 
     const result = await res.json();
     if (result.success) {
-      window.location.href = "/dashboard";
+      window.location.href = "/user/dashboard";
     } else {
       alert("Error: " + result.message);
     }
@@ -300,7 +300,7 @@ $("reportForm").addEventListener("submit", async (e) => {
   }
 
   try {
-    const res = await fetch("/report", {
+    const res = await fetch("/user/report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -317,7 +317,7 @@ $("reportForm").addEventListener("submit", async (e) => {
     const result = await res.json();
     if (result.success) {
       // Redirect on success
-      window.location.href = "/dashboard";
+      window.location.href = "/user/dashboard";
     } else {
       alert("Error: " + result.message);
     }

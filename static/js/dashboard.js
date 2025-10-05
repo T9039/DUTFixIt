@@ -9,14 +9,14 @@ function statusColor(status) {
 
 async function loadRequests() {
   try {
-    const res = await fetch("/dashboard", {
+    const res = await fetch("/user/dashboard", {
       headers: { "Accept": "application/json" }
     });
 
     if (!res.ok) {
       if (res.status === 401) {
         alert("You must be logged in to view your reports.");
-        window.location.href = "/login";
+        window.location.href = "/sign-in";
         return;
       }
       console.error("Error fetching reports:", res.statusText);

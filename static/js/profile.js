@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------- FETCH PROFILE DATA FROM BACKEND ---------
   async function getProfile() {
     try {
-      const res = await fetch("/profile",{
+      const res = await fetch("/user/profile",{
         method: "GET",
         headers: { "Accept": "application/json" } 
       });
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) {
         if (res.status === 401) {
           alert("You must be logged in to view your profile.");
-          window.location.href = "/login";
+          window.location.href = "/sign-in";
           return null;
         }
         console.error("Error fetching profile data");
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------- CHANGE PASSWORD BUTTON ---------
   if (changePasswordBtn) {
     changePasswordBtn.addEventListener("click", () => {
-      window.location.href = "/change-password"; // dedicated route
+      window.location.href = "/change-password/new"; // dedicated route
     });
   }
 
