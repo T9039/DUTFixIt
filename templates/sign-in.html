@@ -20,79 +20,80 @@
 {% endblock %} 
 
 {% block body %}
-<div class="min-h-screen flex items-center justify-center">
+<body class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+     style="background-image: url('/static/img/bg-img-bw-mobile.jpeg');">
   <div class="w-full max-w-md md:max-w-xl mx-auto flex flex-col items-center justify-center animate-fadein px-2">
-    <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl w-full px-4 py-6 md:px-10 md:py-12 flex flex-col items-center">
+    <div class="bg-[#FFFFFF]/95 backdrop-blur-sm rounded-2xl shadow-2xl w-full px-4 py-6 md:px-10 md:py-12 flex flex-col items-center">
 
       <!-- Desktop Sign-in Form -->
       <form id="loginForm" class="hidden md:block w-full space-y-4">
-        <h2 class="text-xl md:text-2xl font-bold text-indigo-900 mb-1 text-center">Sign In</h2>
-        <p class="text-indigo-500 mb-2 text-center font-medium text-sm md:text-base">Use your DUT credentials</p>
+        <h2 class="text-xl md:text-2xl font-bold text-[#2E3A8A] mb-1 text-center">Sign In</h2>
+        <p class="text-[#006BB8] mb-2 text-center font-medium text-sm md:text-base">Use your DUT credentials</p>
 
         <div>
-          <label for="email" class="block text-sm font-semibold text-indigo-900 mb-1">Email</label>
+          <label for="email" class="block text-sm font-semibold text-[#2E3A8A] mb-1">Email</label>
           <input id="email" name="email" type="email" autocomplete="username"
-            class="w-full px-3 py-2 rounded-lg bg-indigo-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base shadow"/>
+            class="w-full px-3 py-2 rounded-lg bg-[#595B73]/20 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006BB8] text-base shadow"/>
           <div id="desktopEmailError" class="text-sm text-red-600 mt-1 hidden"></div>
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-semibold text-indigo-900 mb-1">Password</label>
+          <label for="password" class="block text-sm font-semibold text-[#2E3A8A] mb-1">Password</label>
           <input id="password" name="password" type="password" autocomplete="current-password"
-            class="w-full px-3 py-2 rounded-lg bg-indigo-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base shadow"/>
+            class="w-full px-3 py-2 rounded-lg bg-[#595B73]/20 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006BB8] text-base shadow"/>
           <div id="desktopPasswordError" class="text-sm text-red-600 mt-1 hidden"></div>
         </div>
 
         <div class="flex justify-between items-center">
-          <a href="/forgot-password/email" class="text-indigo-500 underline hover:text-indigo-700 text-sm">Forgot password?</a>
+          <a href="/forgot-password/email" class="text-[#006BB8] underline hover:text-[#2E3A8A] text-sm">Forgot password?</a>
         </div>
 
         <button type="submit"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow transition text-base">
+          class="w-full bg-[#2E3A8A] hover:bg-[#006BB8] text-white font-semibold py-2 rounded-lg shadow transition text-base">
           Sign in
         </button>
 
-        <p class="register-link text-indigo-500 text-center mt-2 font-medium text-sm">
-          <a href="/sign-up" class="underline hover:text-indigo-700">Don't have an account?</a>
+        <p class="register-link text-[#006BB8] text-center mt-2 font-medium text-sm">
+          <a href="/sign-up" class="underline hover:text-[#2E3A8A]">Don't have an account?</a>
         </p>
       </form>
 
       <!-- Mobile Sign-in Form -->
       <form id="mobileSignInForm" class="block md:hidden w-full space-y-4">
-        <h2 class="text-xl font-bold text-indigo-900 mb-1 text-center">Sign In</h2>
-        <p class="text-indigo-500 mb-2 text-center font-medium text-sm">Use your DUT credentials</p>
+        <h2 class="text-xl font-bold text-[#2E3A8A] mb-1 text-center">Sign In</h2>
+        <p class="text-[#006BB8] mb-2 text-center font-medium text-sm">Use your DUT credentials</p>
 
         <div>
-          <label for="mobileEmail" class="block text-sm font-semibold text-indigo-900 mb-1">Email</label>
+          <label for="mobileEmail" class="block text-sm font-semibold text-[#2E3A8A] mb-1">Email</label>
           <input id="mobileEmail" name="email" type="email" autocomplete="username"
-            class="w-full px-3 py-2 rounded-lg bg-indigo-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base shadow"/>
+            class="w-full px-3 py-2 rounded-lg bg-[#595B73]/20 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006BB8] text-base shadow"/>
           <div id="mobileEmailError" class="text-sm text-red-600 mt-1 hidden"></div>
         </div>
 
         <div>
-          <label for="mobilePassword" class="block text-sm font-semibold text-indigo-900 mb-1">Password</label>
+          <label for="mobilePassword" class="block text-sm font-semibold text-[#2E3A8A] mb-1">Password</label>
           <input id="mobilePassword" name="password" type="password" autocomplete="current-password"
-            class="w-full px-3 py-2 rounded-lg bg-indigo-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base shadow"/>
+            class="w-full px-3 py-2 rounded-lg bg-[#595B73]/20 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006BB8] text-base shadow"/>
           <div id="mobilePasswordError" class="text-sm text-red-600 mt-1 hidden"></div>
         </div>
 
-        <a href="/forgot-password/email" class="text-indigo-500 underline hover:text-indigo-700 text-sm block text-center">
+        <a href="/forgot-password/email" class="text-[#006BB8] underline hover:text-[#2E3A8A] text-sm block text-center">
           Forgot password?
         </a>
 
         <button type="submit"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow transition text-base">
+          class="w-full bg-[#2E3A8A] hover:bg-[#006BB8] text-white font-semibold py-2 rounded-lg shadow transition text-base">
           Sign in
         </button>
 
-        <p class="register-link text-indigo-500 text-center mt-2 font-medium text-sm">
-          <a href="/sign-up" class="underline hover:text-indigo-700">Don't have an account?</a>
+        <p class="register-link text-[#006BB8] text-center mt-2 font-medium text-sm">
+          <a href="/sign-up" class="underline hover:text-[#2E3A8A]">Don't have an account?</a>
         </p>
       </form>
 
     </div>
   </div>
-</div>
+</body>
 
 <script src="static/js/sign-in.js"></script>
 {% endblock %}
