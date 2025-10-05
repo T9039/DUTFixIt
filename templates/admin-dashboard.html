@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Dashboard - FIX-IT DUT</title>
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* tiny helper to allow a smooth cubic-bezier similar to original */
+      .ease-custom {
+        transition-timing-function: cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen font-sans"
+    style="background-image: url(&quot;background3.jpg&quot;)"
+  >
+    <!-- soft background shape (pure utilities + a tiny inline style for two radial gradients) -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none fixed inset-0 -top-28 -left-28 w-[100vw] h-[100vh] opacity-20 blur-[40px] z-0"
+    ></div>
+
+    <!-- Header -->
+    <header
+      class="bg-[#212145] flex items-center justify-between px-4 py-3 z-10 relative"
+    >
+      <div class="flex items-center gap-3 select-none">
+        <img src="logo.jpg" alt="Logo" class="h-8 w-auto" />
+        <div class="text-white font-extrabold text-lg sm:text-xl">
+          FIX-IT DUT
+        </div>
+      </div>
+      <button
+        id="sidebarOpenBtn"
+        aria-label="Open sidebar"
+        class="p-2 rounded-full hover:bg-indigo-700 focus:outline-none"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="white"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10Zm0 5.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Sidebar overlay + box -->
+    <div
+      id="sidebarBg"
+      class="fixed inset-0 bg-black/40 z-40 hidden"
+      aria-hidden="true"
+    ></div>
+
+    <nav
+      id="sidebarBox"
+      class="fixed right-0 top-0 h-full w-full max-w-[22rem] sm:w-68 bg-[#212145] shadow-2xl rounded-l-2xl p-6 transform translate-x-full transition-transform duration-200 ease-custom z-50"
+      aria-hidden="true"
+    >
+      <button
+        id="sidebarCloseBtn"
+        class="absolute top-3 left-3 text-gray-400 hover:text-gray-900 text-2xl font-bold bg-transparent border-none"
+        aria-label="Close sidebar"
+      >
+        &times;
+      </button>
+
+      <div class="mt-6 flex flex-col gap-3">
+        <a
+          href="Admin-profile.html"
+          id="sidebarProfileBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View profile"
+        >
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="#4f46e5"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.25a8.25 8.25 0 0 1 15.998 0 .75.75 0 0 1-.75.75h-14.5a.75.75 0 0 1-.748-.75Z"
+            />
+          </svg>
+          <span>Profile</span>
+        </a>
+
+        <a
+          href="Admin-dashboard.html"
+          id="sidebarDashboardBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View dashboard"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#4f46e5"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a
+          href="Admin-report.html"
+          id="sidebarReportBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View reports"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M13.887 3.182c.396.037.79.08 1.183.128C16.194 3.45 17 4.414 17 5.517V16.75A2.25 2.25 0 0 1 14.75 19h-9.5A2.25 2.25 0 0 1 3 16.75V5.517c0-1.103.806-2.068 1.93-2.207.393-.048.787-.09 1.183-.128A3.001 3.001 0 0 1 9 1h2c1.373 0 2.531.923 2.887 2.182ZM7.5 4A1.5 1.5 0 0 1 9 2.5h2A1.5 1.5 0 0 1 12.5 4v.5h-5V4Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Report Page</span>
+        </a>
+
+        <a
+          href="Admin-notification2.html"
+          id="sidebarNotificationsBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium relative"
+          aria-label="View notifications"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Notifications</span>
+          <span
+            id="notificationCounter"
+            class="absolute right-3 top-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5"
+            style="display: none"
+          ></span>
+        </a>
+
+        <a
+          href="Technician.html"
+          id="sidebarTechniciansBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View technicians"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path d="M10 3a3 3 0 11-6 0 3 3 0 016 0Z" />
+            <path
+              fill-rule="evenodd"
+              d="M4 8a4 4 0 018 0v.5a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 014 8.5V8Z"
+              clip-rule="evenodd"
+            />
+            <path d="M14 9a3 3 0 100 6 3 3 0 000-6Z" />
+            <path
+              d="M10.5 15.134a4.492 4.492 0 01-.5-2.134v-.5A1.5 1.5 0 0111.5 11h5a1.5 1.5 0 011.5 1.5v.5a4.5 4.5 0 01-.5 2.134A5.978 5.978 0 0014 17a5.978 5.978 0 00-3.5-1.866Z"
+            />
+          </svg>
+          <span>Technicians</span>
+        </a>
+
+        <button
+          id="sidebarLogoutBtn"
+          type="button"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-red-100 text-red-800 font-medium w-full"
+          aria-label="Logout"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#dc2626"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M17 4.25A2.25 2.25 0 0 0 14.75 2h-5.5A2.25 2.25 0 0 0 7 4.25v2a.75.75 0 0 0 1.5 0v-2a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1-.75-.75v-2a.75.75 0 0 0-1.5 0v2A2.25 2.25 0 0 0 9.25 18h5.5A2.25 2.25 0 0 0 17 15.75V4.25Z"
+              clip-rule="evenodd"
+            />
+            <path
+              fill-rule="evenodd"
+              d="M14 10a.75.75 0 0 0-.75-.75H3.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114l-1.048-.943h9.546A.75.75 0 0 0 14 10Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="max-w-7xl mx-auto mt-6 sm:mt-10 px-4 pb-12 relative z-10">
+      <div class="mb-6">
+        <div class="text-lg font-semibold text-black">Hello, Manager</div>
+        <div class="text-2xl font-extrabold leading-tigh">
+          Maintenance Requests
+        </div>
+        <div id="summaryText" class="text-white font-medium mt-1">
+          Showing —
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 md:p-5 shadow-md mb-6">
+        <input
+          id="searchBar"
+          type="search"
+          class="w-full max-w-[720px] px-4 py-2 rounded-lg border-2 border-gray-200 outline-none shadow-sm font-semibold focus:shadow-lg focus:border-indigo-600"
+          placeholder="Search by ID, location, category, type, technician or notes..."
+          aria-label="Search requests"
+        />
+
+        <div
+          class="mt-3 flex flex-wrap gap-2"
+          role="group"
+          aria-label="Filter maintenance requests"
+        >
+          <button
+            class="filter-btn active px-3 py-2 rounded-full font-bold text-[#2E3A8A] bg-indigo-50 border border-indigo-100"
+          >
+            ALL
+          </button>
+          <button
+            class="filter-btn px-3 py-2 rounded-full font-bold text-[#2E3A8A] bg-white border border-gray-200"
+          >
+            PENDING
+          </button>
+          <button
+            class="filter-btn px-3 py-2 rounded-full font-bold text-[#2E3A8A] bg-white border border-gray-200"
+          >
+            IN PROGRESS
+          </button>
+          <button
+            class="filter-btn px-3 py-2 rounded-full font-bold text-[#2E3A8A] bg-white border border-gray-200"
+          >
+            COMPLETED
+          </button>
+        </div>
+      </div>
+
+      <!-- Requests container -->
+      <div class="bg-gray-200 rounded-xl shadow-lg overflow-hidden">
+        <!-- Desktop table -->
+        <div class="hidden md:block">
+          <div class="max-h-[calc(100vh-240px)] overflow-y-auto">
+            <table
+              aria-label="Maintenance requests table"
+              class="min-w-full table-fixed"
+            >
+              <thead class="sticky top-0">
+                <tr>
+                  <th class="bg-[#212145] text-white text-left font-bold p-4">
+                    Request ID
+                  </th>
+                  <th class="bg-[#212145] text-white text-left font-bold p-4">
+                    Location
+                  </th>
+                  <th class="bg-[#212145] text-white text-left font-bold p-4">
+                    Category
+                  </th>
+                  <th class="bg-[#212145] text-white text-left font-bold p-4">
+                    Type
+                  </th>
+                  <th class="bg-[#212145] text-white text-left font-bold p-4">
+                    Status
+                  </th>
+                  <th class="bg-[#212145] text-white text-left font-bold p-4">
+                    Technician
+                  </th>
+                  <th class="bg-[#212145] text-white text-left font-bold p-4">
+                    Description
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="requestTableBody" class="bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mobile / Tablet cards -->
+        <div id="requestCards" class="md:hidden p-4 space-y-4"></div>
+      </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/admin-dashboard.js') }}"></script>
+  </body>
+</html>
