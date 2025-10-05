@@ -16,7 +16,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 db = SQLAlchemy(app)
 
 # 🔹 Development secret key (change for production!)
-app.secret_key = "dev_3kq2g9p1v8x4b7z6"  # randomly generated for dev use
+app.secret_key = "dev_**********x4b7z6"  # randomly generated for dev use
 
 
 def generate_otp():
@@ -34,8 +34,8 @@ def send_email(to_email, subject, body):
     Simplest option: use Gmail SMTP or Mailtrap.io (free).
     For a school project you can hardcode Mailtrap credentials.
     """
-    from_email = "aa66b1448e7173"
-    from_password = "370f53b9a831dc"
+    from_email = "aa**********73"
+    from_password = "37**********dc"
 
     try:
         with smtplib.SMTP("smtp.mailtrap.io", 587) as server:
@@ -258,20 +258,22 @@ def sign_in():
                 return jsonify({"success": False, "message": msg}), 401
             return msg, 401
 
-        # Store session data
+        # ✅ Store session data safely
         session["user_id"] = user.user_id
         session["email"] = user.user_email
-        session["role"] = user.role  # ← store the user's role for later use
+        session["role"] = user.user_role.value  # <-- FIXED HERE
 
-        # Decide redirect URL based on role
-        if user.role == "Admin":
+        # ✅ Decide redirect URL based on role
+        role_value = user.user_role.value.lower()
+
+        if role_value == "admin":
             redirect_url = "/admin/dashboard"
-        elif user.role == "Technician":
+        elif role_value == "technician":
             redirect_url = "/technician/dashboard"
         else:
             redirect_url = "/user/dashboard"
 
-        # JSON or form-based response
+        # ✅ JSON or form-based response
         if request.is_json:
             return jsonify(
                 {
@@ -507,7 +509,53 @@ def sign_up():
     return render_template("sign-up.html")
 
 
-@app.route("/report", methods=["POST", "GET"])
+@app.route("/user/dashboard", methods=["GET"])
+def dashboard():
+    if "user_id" not in session:
+        # redirect to login for page loads
+        if "application/json" in request.headers.get("Accept", ""):
+            return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+
+    # If it's a fetch request asking for JSON
+    if "application/json" in request.headers.get("Accept", ""):
+        try:
+            user_id = session["user_id"]
+            reports = (
+                Report.query.filter_by(user_id=user_id)
+                .order_by(Report.report_id.desc())
+                .all()
+            )
+
+            reports_list = []
+            for r in reports:
+                reports_list.append(
+                    {
+                        "id": r.report_id,
+                        "category": r.category,
+                        "type": r.type,
+                        "status": getattr(r, "status", "pending"),
+                        "notes": r.notes,
+                        "date": r.created_at.strftime("%Y-%m-%d")
+                        if hasattr(r, "created_at")
+                        else "",
+                        "time": r.created_at.strftime("%H:%M")
+                        if hasattr(r, "created_at")
+                        else "",
+                    }
+                )
+
+            return jsonify({"success": True, "reports": reports_list}), 200
+
+        except Exception as e:
+            print(f"ERROR fetching user reports: {e}")
+            return jsonify({"success": False, "message": "Server error"}), 500
+
+    # Otherwise render the dashboard page
+    return render_template("dashboard.html")
+
+
+@app.route("/user/report", methods=["POST", "GET"])
 def report():
     if "user_id" not in session:
         return redirect("/sign-in")
@@ -561,7 +609,7 @@ def report():
     return render_template("report.html")
 
 
-@app.route("/profile", methods=["GET"])
+@app.route("/user/profile", methods=["GET"])
 def profile():
     if "user_id" not in session:
         # Redirect for normal page load, JSON for fetch
@@ -606,100 +654,75 @@ def profile():
     return render_template("profile.html")
 
 
-@app.route("/dashboard", methods=["GET"])
-def dashboard():
-    if "user_id" not in session:
-        # redirect to login for page loads
-        if "application/json" in request.headers.get("Accept", ""):
-            return jsonify({"success": False, "message": "User not logged in"}), 401
-        return redirect("/sign-in")
-
-    # If it's a fetch request asking for JSON
-    if "application/json" in request.headers.get("Accept", ""):
-        try:
-            user_id = session["user_id"]
-            reports = (
-                Report.query.filter_by(user_id=user_id)
-                .order_by(Report.report_id.desc())
-                .all()
-            )
-
-            reports_list = []
-            for r in reports:
-                reports_list.append(
-                    {
-                        "id": r.report_id,
-                        "category": r.category,
-                        "type": r.type,
-                        "status": getattr(r, "status", "pending"),
-                        "notes": r.notes,
-                        "date": r.created_at.strftime("%Y-%m-%d")
-                        if hasattr(r, "created_at")
-                        else "",
-                        "time": r.created_at.strftime("%H:%M")
-                        if hasattr(r, "created_at")
-                        else "",
-                    }
-                )
-
-            return jsonify({"success": True, "reports": reports_list}), 200
-
-        except Exception as e:
-            print(f"ERROR fetching user reports: {e}")
-            return jsonify({"success": False, "message": "Server error"}), 500
-
-    # Otherwise render the dashboard page
-    return render_template("dashboard.html")
-
-
 # ADMIN ROUTES FROM HERE
 
 
-@app.route("/admin/dashboard")
-def get_requests():
-    dummy_requests = [
-        {
-            "id": 1,
-            "campus": "Main Campus",
-            "block": "A",
-            "category": "Electrical",
-            "type": "Light bulb replacement",
-            "status": "pending",
-            "technician": "John Doe",
-            "notes": "Room A101 light flickers occasionally",
-        },
-        {
-            "id": 2,
-            "campus": "North Campus",
-            "block": "C",
-            "category": "Plumbing",
-            "type": "Leak repair",
-            "status": "in-progress",
-            "technician": "Jane Smith",
-            "notes": "Water leakage near the restroom",
-        },
-        {
-            "id": 3,
-            "campus": "South Campus",
-            "block": "B",
-            "category": "IT",
-            "type": "Network issue",
-            "status": "done",
-            "technician": "Michael Brown",
-            "notes": "Internet restored successfully in Lab B204",
-        },
-        {
-            "id": 4,
-            "campus": "Main Campus",
-            "block": "D",
-            "category": "Maintenance",
-            "type": "Door hinge repair",
-            "status": "pending",
-            "technician": "Unassigned",
-            "notes": "Door squeaks loudly when opened",
-        },
-    ]
-    return jsonify(dummy_requests)
+@app.route("/admin/dashboard", methods=["GET"])
+def admin_dashboard():
+    # ---- Authentication check ----
+    if "user_id" not in session:
+        if request.accept_mimetypes["application/json"]:
+            return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+
+    # ---- AJAX (fetch) GET ----
+    if request.method == "GET" and request.accept_mimetypes.best == "application/json":
+        try:
+            dummy_requests = [
+                {
+                    "id": 1,
+                    "campus": "Main Campus",
+                    "block": "A",
+                    "category": "Electrical",
+                    "type": "Light bulb replacement",
+                    "status": "pending",
+                    "technician": "John Doe",
+                    "notes": "Room A101 light flickers occasionally",
+                },
+                {
+                    "id": 2,
+                    "campus": "North Campus",
+                    "block": "C",
+                    "category": "Plumbing",
+                    "type": "Leak repair",
+                    "status": "in-progress",
+                    "technician": "Jane Smith",
+                    "notes": "Water leakage near the restroom",
+                },
+                {
+                    "id": 3,
+                    "campus": "South Campus",
+                    "block": "B",
+                    "category": "IT",
+                    "type": "Network issue",
+                    "status": "done",
+                    "technician": "Michael Brown",
+                    "notes": "Internet restored successfully in Lab B204",
+                },
+                {
+                    "id": 4,
+                    "campus": "Main Campus",
+                    "block": "D",
+                    "category": "Maintenance",
+                    "type": "Door hinge repair",
+                    "status": "pending",
+                    "technician": "Unassigned",
+                    "notes": "Door squeaks loudly when opened",
+                },
+            ]
+            return jsonify(dummy_requests)
+        except Exception as e:
+            print(f"ERROR fetching reports: {e}")
+            return jsonify({"success": False, "message": "Server error"}), 500
+
+    # ---- Handle POST (future status updates etc.) ----
+    if request.method == "POST":
+        # you can add logic later here for updating request statuses, etc.
+        return jsonify({"success": True, "message": "POST received"})
+
+    # ---- Normal browser GET (page render) ----
+    # if request.method == "GET":
+    return render_template("admin-dashboard.html")
 
 
 @app.route("/reset-db")
