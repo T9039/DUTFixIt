@@ -227,7 +227,7 @@ def index():
 @app.route("/sign-in", methods=["POST", "GET"])
 def sign_in():
     if request.method == "POST":
-        # Detect JSON vs traditional form POST
+        # Handle JSON and form data
         if request.is_json:
             data = request.get_json()
             email = data.get("email", "").strip().lower()
@@ -236,38 +236,52 @@ def sign_in():
             email = request.form.get("email", "").strip().lower()
             password = request.form.get("password", "")
 
-        # Basic validation
+        # Validation
         if not email or not password:
-            msg = "Email, password, and role are required."
+            msg = "Email and password are required."
             if request.is_json:
                 return jsonify({"success": False, "message": msg}), 400
-            else:
-                return msg, 400
+            return msg, 400
 
         if not is_valid_dut_email(email):
             msg = "Please use a valid DUT email (@dut.ac.za or @dut4life.ac.za)."
             if request.is_json:
                 return jsonify({"success": False, "message": msg}), 400
-            else:
-                return msg, 400
+            return msg, 400
 
         user = User.query.filter_by(user_email=email).first()
 
-        # 🔹 Check password
+        # Check credentials
         if not user or not user.check_pass_hash(password):
             msg = "Invalid email or password."
             if request.is_json:
                 return jsonify({"success": False, "message": msg}), 401
             return msg, 401
 
-        # 🔹 Set session BEFORE returning
+        # Store session data
         session["user_id"] = user.user_id
         session["email"] = user.user_email
+        session["role"] = user.role  # ← store the user's role for later use
 
-        # Return response
+        # Decide redirect URL based on role
+        if user.role == "Admin":
+            redirect_url = "/admin/dashboard"
+        elif user.role == "Technician":
+            redirect_url = "/technician/dashboard"
+        else:
+            redirect_url = "/user/dashboard"
+
+        # JSON or form-based response
         if request.is_json:
-            return jsonify({"success": True, "message": "Login successful"}), 200
-        return redirect("/dashboard")
+            return jsonify(
+                {
+                    "success": True,
+                    "message": "Login successful",
+                    "redirect": redirect_url,
+                }
+            ), 200
+        else:
+            return redirect(redirect_url)
 
     return render_template("sign-in.html")
 
@@ -636,6 +650,56 @@ def dashboard():
 
     # Otherwise render the dashboard page
     return render_template("dashboard.html")
+
+
+# ADMIN ROUTES FROM HERE
+
+
+@app.route("/admin/dashboard")
+def get_requests():
+    dummy_requests = [
+        {
+            "id": 1,
+            "campus": "Main Campus",
+            "block": "A",
+            "category": "Electrical",
+            "type": "Light bulb replacement",
+            "status": "pending",
+            "technician": "John Doe",
+            "notes": "Room A101 light flickers occasionally",
+        },
+        {
+            "id": 2,
+            "campus": "North Campus",
+            "block": "C",
+            "category": "Plumbing",
+            "type": "Leak repair",
+            "status": "in-progress",
+            "technician": "Jane Smith",
+            "notes": "Water leakage near the restroom",
+        },
+        {
+            "id": 3,
+            "campus": "South Campus",
+            "block": "B",
+            "category": "IT",
+            "type": "Network issue",
+            "status": "done",
+            "technician": "Michael Brown",
+            "notes": "Internet restored successfully in Lab B204",
+        },
+        {
+            "id": 4,
+            "campus": "Main Campus",
+            "block": "D",
+            "category": "Maintenance",
+            "type": "Door hinge repair",
+            "status": "pending",
+            "technician": "Unassigned",
+            "notes": "Door squeaks loudly when opened",
+        },
+    ]
+    return jsonify(dummy_requests)
 
 
 @app.route("/reset-db")
