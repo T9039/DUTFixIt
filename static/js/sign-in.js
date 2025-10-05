@@ -50,8 +50,9 @@ function setupSignInForm(formId, emailId, passwordId, emailErrorId, passwordErro
       const result = await response.json();
 
       if (response.ok && result.success) {
-        alert('✅ Login successful! Redirecting to dashboard...');
-        window.location.href = '/dashboard'; // Flask route
+        alert('✅ Login successful! Redirecting...');
+        // Redirect based on the URL sent from backend
+        window.location.href = result.redirect || '/dashboard';
       } else {
         alert('❌ ' + (result.message || 'Invalid credentials. Please sign up.'));
       }
