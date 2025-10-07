@@ -17,12 +17,12 @@
           class="text-2xl font-bold text-[#0A0C09] select-none"
           >Profile</a
         >
-        <button
-          id="editBtn"
-          class="bg-[#2E3A8A] text-white px-6 py-2.5 rounded-lg hover:bg-indigo-800 transition-all font-semibold"
-        >
-          Edit
-        </button>
+        <!-- <button -->
+        <!--   id="editBtn" -->
+        <!--   class="bg-[#2E3A8A] text-white px-6 py-2.5 rounded-lg hover:bg-indigo-800 transition-all font-semibold" -->
+        <!-- > -->
+        <!--   Edit -->
+        <!-- </button> -->
       </div>
 
       <!-- Profile Info -->
@@ -47,7 +47,7 @@
 
         <!-- FULL NAME -->
         <div>
-          <label class="block text-gray-600 font-medium">Full Name</label>
+          <label class="block text-gray-600 font-medium">Initials</label>
           <span
             id="fullNameDisplay"
             class="block text-lg font-semibold text-gray-900"
@@ -76,24 +76,24 @@
         </div>
 
         <!-- GENDER -->
-        <div>
-          <label class="block text-gray-600 font-medium">Gender</label>
-          <span
-            id="genderDisplay"
-            class="block text-lg font-semibold text-gray-900"
-          ></span>
-          <select
-            id="genderInput"
-            name="gender"
-            class="hidden mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">Select Gender</option>
-            <option value="female">Female</option>
-            <option value="male">Male</option>
-            <option value="other">Other</option>
-            <option value="preferNotToSay">Prefer not to say</option>
-          </select>
-        </div>
+        <!-- <div> -->
+        <!--   <label class="block text-gray-600 font-medium">Gender</label> -->
+        <!--   <span -->
+        <!--     id="genderDisplay" -->
+        <!--     class="block text-lg font-semibold text-gray-900" -->
+        <!--   ></span> -->
+        <!--   <select -->
+        <!--     id="genderInput" -->
+        <!--     name="gender" -->
+        <!--     class="hidden mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" -->
+        <!--   > -->
+        <!--     <option value="">Select Gender</option> -->
+        <!--     <option value="female">Female</option> -->
+        <!--     <option value="male">Male</option> -->
+        <!--     <option value="other">Other</option> -->
+        <!--     <option value="preferNotToSay">Prefer not to say</option> -->
+        <!--   </select> -->
+        <!-- </div> -->
 
         <!-- ROLE (non-editable) -->
         <div>
@@ -124,5 +124,5 @@
   </main>
 </div>
 
-<script src="static/js/profile.js"></script>
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}

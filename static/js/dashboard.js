@@ -30,6 +30,7 @@ async function loadRequests() {
     }
 
     const requests = data.reports || [];
+    console.log(requests)
 
     // ----- Desktop table -----
     const tableBody = document.querySelector("#issuesTable tbody");
@@ -54,6 +55,13 @@ async function loadRequests() {
           <td class="px-4 py-2">${req.notes || ""}</td>
           <td class="px-4 py-2">${req.date || ""}</td>
           <td class="px-4 py-2">${req.time || ""}</td>
+          <td class="px-4 py-2 text-center">
+            ${
+              req.image_url
+                ? `<button data-img="${req.image_url}" class="view-img text-blue-600 hover:underline">View</button>`
+                : `<span class="text-gray-400 italic">None</span>`
+            }
+          </td>
         `;
         tableBody.appendChild(row);
       });
@@ -79,6 +87,14 @@ async function loadRequests() {
           <div class="flex justify-between mt-1"><span class="font-semibold">Notes</span><span>${req.notes || ""}</span></div>
           <div class="flex justify-between mt-1"><span class="font-semibold">Date</span><span>${req.date || ""}</span></div>
           <div class="flex justify-between mt-1"><span class="font-semibold">Time</span><span>${req.time || ""}</span></div>
+          <div class="flex justify-between mt-1">
+            <span class="font-semibold">Image</span>
+            ${
+              req.image_url
+                ? `<button data-img="${req.image_url}" class="view-img text-blue-600 hover:underline">View</button>`
+                : `<span class="text-gray-400 italic">None</span>`
+            }
+          </div>
         `;
         cardsBox.appendChild(card);
       });
@@ -87,6 +103,71 @@ async function loadRequests() {
     console.error("Network error fetching reports:", err);
   }
 }
+
+// Modal logic
+const modal = document.getElementById("imageModal");
+const modalImage = document.getElementById("modalImage");
+const closeModalBtn = document.getElementById("closeModal");
+
+// Open modal when clicking "View"
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("view-img")) {
+    const imgPath = e.target.getAttribute("data-img");
+    modalImage.src = `${imgPath}`;
+    console.log(imgPath)
+    modal.classList.remove("hidden");
+    modal.classList.add("flex", "opacity-100");
+  }
+});
+
+// Close modal
+closeModalBtn.addEventListener("click", () => {
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+  modalImage.style.transform = "scale(1)";
+  scale = 1;
+  zoomed = false;
+});
+
+// Close when clicking outside
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    modalImage.style.transform = "scale(1)";
+    scale = 1;
+    zoomed = false;
+  }
+});
+
+// Zoom functionality 
+
+let zoomed = false;
+
+modalImage.addEventListener("click", () => {
+  zoomed = !zoomed;
+  if (zoomed) {
+    modalImage.classList.remove("cursor-zoom-in");
+    modalImage.classList.add("cursor-zoom-out");
+    modalImage.style.transform = "scale(2)";
+  } else {
+    modalImage.classList.remove("cursor-zoom-out");
+    modalImage.classList.add("cursor-zoom-in");
+    modalImage.style.transform = "scale(1)";
+  }
+});
+
+// Allow mouse scrolling
+
+let scale = 1;
+modalImage.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  scale += e.deltaY * -0.001; // scroll up to zoom in
+  scale = Math.min(Math.max(1, scale), 3); // clamp between 1x–3x
+  modalImage.style.transform = `scale(${scale})`;
+});
+
+
 
 window.onload = loadRequests;
 

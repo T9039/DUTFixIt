@@ -248,13 +248,15 @@ $("typeSelect").addEventListener("change", (e) => {
 
 
 // === Form Submission ===
-$("reportForm").addEventListener("submit", async (e) => {
+document.getElementById("reportForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  let typeVal = $("typeSelect").value;
-  if (typeVal === "Other") typeVal = $("otherTypeInput").value.trim() || "Other";
-
   const formData = new FormData();
+
+  let typeVal = $("typeSelect").value;
+  if (typeVal === "Other")
+    typeVal = $("otherTypeInput").value.trim() || "Other";
+
   formData.append("category", $("categorySelect").value);
   formData.append("type", typeVal);
   formData.append("campus", $("campusSelect").value);
@@ -270,60 +272,28 @@ $("reportForm").addEventListener("submit", async (e) => {
   try {
     const res = await fetch("/user/report", {
       method: "POST",
-      body: formData, // No need for headers, fetch sets it for FormData
+      body: formData,
+      headers: { "X-Requested-With": "XMLHttpRequest" },
     });
 
+
+    const result = await res.json();
+
     if (res.status === 401) {
-      const result = await res.json();
       alert(result.message || "You must be logged in to submit a report.");
       window.location.href = "/sign-in";
       return;
     }
 
-    const result = await res.json();
     if (result.success) {
+      alert("Report submitted successfully!");
       window.location.href = "/user/dashboard";
     } else {
       alert("Error: " + result.message);
     }
   } catch (err) {
     console.error(err);
-    alert("An error occurred submitting the report.");
-  }
-
-
-
-  // Basic frontend validation
-  if (!data.category || !data.type || !data.notes) {
-    alert("Please fill in required fields.");
-    return;
-  }
-
-  try {
-    const res = await fetch("/user/report", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    // If the backend explicitly returned 401 (not logged in)
-    if (res.status === 401) {
-      const result = await res.json();
-      alert(result.message || "You must be logged in to submit a report.");
-      window.location.href = "/sign-in"; // redirect
-      return;
-    }
-
-    const result = await res.json();
-    if (result.success) {
-      // Redirect on success
-      window.location.href = "/user/dashboard";
-    } else {
-      alert("Error: " + result.message);
-    }
-  } catch (err) {
-    console.error(err);
-    alert("An error occurred submitting the report.");
+    alert("An error occurred while submitting the report.");
   }
 });
 

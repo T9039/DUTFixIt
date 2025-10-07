@@ -12,13 +12,13 @@
     class="max-w-5xl mx-auto mt-10 p-8 bg-white rounded-2xl shadow-2xl animate-[fadeInUp_0.7s_cubic-bezier(.36,.07,.19,.97)]"
   >
     <h1 class="text-3xl font-bold mb-6 text-[#0A0C09] select-none">
-      Hello Suko 👋
+      Hello {{ user_name }} 👋
     </h1>
 
     <section>
       <h2 class="text-xl font-semibold mb-4 text-gray-800">Report Issue</h2>
 
-      <!-- Desktop Table -->
+      <!-- desktop table -->
       <div class="overflow-x-auto rounded-xl bg-white shadow hidden md:block">
         <div class="max-h-72 overflow-y-auto">
           <table
@@ -27,13 +27,14 @@
           >
             <thead class="bg-gray-200 sticky top-0 text-gray-700">
               <tr>
-                <th class="px-4 py-2">Ref No.</th>
-                <th class="px-4 py-2">Category</th>
-                <th class="px-4 py-2">Type</th>
-                <th class="px-4 py-2">Status</th>
-                <th class="px-4 py-2">Notes</th>
-                <th class="px-4 py-2">Date</th>
-                <th class="px-4 py-2">Time</th>
+                <th class="px-4 py-2">ref no.</th>
+                <th class="px-4 py-2">category</th>
+                <th class="px-4 py-2">type</th>
+                <th class="px-4 py-2">status</th>
+                <th class="px-4 py-2">notes</th>
+                <th class="px-4 py-2">date</th>
+                <th class="px-4 py-2">time</th>
+                <th class="px-4 py-2">image</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 text-gray-900"></tbody>
@@ -48,7 +49,7 @@
       ></div>
 
       <div class="flex justify-end">
-        <a href="report">
+        <a href="/user/report">
           <button
             class="mt-6 px-6 py-2.5 bg-[#2E3A8A] text-white rounded-lg shadow-md hover:bg-indigo-800 transition-all font-semibold"
           >
@@ -57,8 +58,31 @@
         </a>
       </div>
     </section>
-  </main>
+
+    <!-- Image Preview Modal -->
+    <div
+      id="imageModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-opacity duration-200"
+    >
+      <div
+        class="relative bg-white p-4 rounded-xl shadow-lg max-w-2xl w-[90%] max-h-[90%] flex flex-col"
+      >
+        <button
+          id="closeModal"
+          class="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-2xl font-bold"
+        >
+          &times;
+        </button>
+        <img
+          id="modalImage"
+          src=""
+          alt="Report image"
+          class="rounded-lg object-contain w-full h-full cursor-zoom-in"
+        />
+      </div>
+    </div>
+ </main>
 </div>
 
-<script src="static/js/dashboard.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

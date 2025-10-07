@@ -1,10 +1,10 @@
 // --------- PROFILE MANAGEMENT ---------
-let isEditing = false;
+// let isEditing = false;
 
 // Wait until DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
   // Elements
-  const editBtn = document.getElementById("editBtn");
+  // const editBtn = document.getElementById("editBtn");
   const logoutBtn = document.getElementById("logoutBtn");
   const changePasswordBtn = document.getElementById("changePasswordBtn");
 
@@ -13,14 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailDisplay = document.getElementById("emailDisplay");
   const fullNameDisplay = document.getElementById("fullNameDisplay");
   const surnameDisplay = document.getElementById("surnameDisplay");
-  const genderDisplay = document.getElementById("genderDisplay");
+  // const genderDisplay = document.getElementById("genderDisplay");
   const roleDisplay = document.getElementById("roleDisplay");
   const passwordDisplay = document.getElementById("passwordDisplay");
 
   // Edit inputs
   const fullNameInput = document.getElementById("fullNameInput");
   const surnameInput = document.getElementById("surnameInput");
-  const genderInput = document.getElementById("genderInput");
+  // const genderInput = document.getElementById("genderInput");
 
   // --------- FETCH PROFILE DATA FROM BACKEND ---------
   async function getProfile() {
@@ -51,37 +51,37 @@ document.addEventListener("DOMContentLoaded", () => {
   function setDisplayMode(profile) {
     idDisplay.textContent = profile.id;
     emailDisplay.textContent = profile.email;
-    fullNameDisplay.textContent = profile.fullName || "—";
+    fullNameDisplay.textContent = profile.initials || "—";
     surnameDisplay.textContent = profile.surname || "—";
-    genderDisplay.textContent = capitalize(profile.gender);
+    // genderDisplay.textContent = capitalize(profile.gender);
     roleDisplay.textContent = profile.role;
     passwordDisplay.textContent = "•".repeat(profile.passwordLength || 8);
 
-    [fullNameInput, surnameInput, genderInput].forEach(el =>
+    [fullNameInput, surnameInput].forEach(el =>
       el.classList.add("hidden")
     );
-    [fullNameDisplay, surnameDisplay, genderDisplay, passwordDisplay].forEach(el =>
+    [fullNameDisplay, surnameDisplay, passwordDisplay].forEach(el =>
       el.classList.remove("hidden")
     );
-    editBtn.textContent = "Edit";
-    isEditing = false;
+    // editBtn.textContent = "Edit";
+    // isEditing = false;
   }
 
   // --------- EDIT MODE (placeholders for now) ---------
-  function setEditMode(profile) {
-    fullNameInput.value = profile.fullName || "";
-    surnameInput.value = profile.surname || "";
-    genderInput.value = profile.gender || "";
-
-    [fullNameInput, surnameInput, genderInput].forEach(el =>
-      el.classList.remove("hidden")
-    );
-    [fullNameDisplay, surnameDisplay, genderDisplay, passwordDisplay].forEach(el =>
-      el.classList.add("hidden")
-    );
-    editBtn.textContent = "Save";
-    isEditing = true;
-  }
+  // function setEditMode(profile) {
+  //   fullNameInput.value = profile.fullName || "";
+  //   surnameInput.value = profile.surname || "";
+  //   // genderInput.value = profile.gender || "";
+  //
+  //   [fullNameInput, surnameInput].forEach(el =>
+  //     el.classList.remove("hidden")
+  //   );
+  //   [fullNameDisplay, surnameDisplay, passwordDisplay].forEach(el =>
+  //     el.classList.add("hidden")
+  //   );
+  //   // editBtn.textContent = "Save";
+  //   // isEditing = true;
+  // }
 
   // --------- LOAD PROFILE ---------
   async function loadProfile() {
@@ -91,26 +91,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------- TOGGLE EDIT ---------
-  editBtn.addEventListener("click", async () => {
-    const profile = await getProfile();
-    if (!profile) return;
-
-    if (!isEditing) {
-      setEditMode(profile);
-    } else {
-      // For now, keep placeholders locally
-      profile.fullName = fullNameInput.value.trim();
-      profile.surname = surnameInput.value.trim();
-      profile.gender = genderInput.value;
-      // TODO: send updated data to backend later
-      setDisplayMode(profile);
-    }
-  });
+  // editBtn.addEventListener("click", async () => {
+  //   const profile = await getProfile();
+  //   if (!profile) return;
+  //
+  //   if (!isEditing) {
+  //     setEditMode(profile);
+  //   } else {
+  //     // For now, keep placeholders locally
+  //     profile.fullName = fullNameInput.value.trim();
+  //     profile.surname = surnameInput.value.trim();
+  //     // profile.gender = genderInput.value;
+  //     // TODO: send updated data to backend later
+  //     setDisplayMode(profile);
+  //   }
+  // });
 
   // --------- CHANGE PASSWORD BUTTON ---------
   if (changePasswordBtn) {
     changePasswordBtn.addEventListener("click", () => {
-      window.location.href = "/change-password/new"; // dedicated route
+      window.location.href = "/forgot-password/new"; // dedicated route
     });
   }
 
