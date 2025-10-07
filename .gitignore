@@ -2,3 +2,4 @@
 static/css/
 teams_login_selenium.py
 instance/database.db
+instance/uploads/
