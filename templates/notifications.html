@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Notifications</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex flex-col items-center p-8">
+    <div class="w-full max-w-3xl">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Notifications</h1>
+        <button
+          id="markAllBtn"
+          class="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Mark all as read
+        </button>
+      </div>
+
+      <div id="loading" class="text-gray-500 mb-4">
+        Loading notifications...
+      </div>
+      <div id="notificationsList" class="flex flex-col gap-4"></div>
+    </div>
+
+    <!-- Modal -->
+    <div
+      id="notificationModal"
+      class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-lg relative">
+        <button
+          id="closeModal"
+          class="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+        >
+          &times;
+        </button>
+        <span
+          id="modalType"
+          class="inline-block text-sm font-medium px-3 py-1 rounded-full mb-2"
+        ></span>
+        <p id="modalRef" class="text-sm text-gray-500 mb-1"></p>
+        <h2 id="modalHeading" class="text-lg font-semibold text-gray-800"></h2>
+        <p id="modalContent" class="text-gray-700 mt-2"></p>
+        <div
+          class="flex justify-between items-center mt-4 text-sm text-gray-500"
+        >
+          <p>
+            From:
+            <span id="modalSender" class="font-medium text-gray-700"></span>
+          </p>
+          <p id="modalDate"></p>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+  </body>
+</html>

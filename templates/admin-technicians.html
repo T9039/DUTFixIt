@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Technician Management - FIX-IT DUT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* header sizing variable so layout math is consistent */
+      :root {
+        --header-h: 4rem;
+      }
+
+      /* page bg + animation */
+      body {
+        background: linear-gradient(120deg, #e6e9ff 0%, #d6dbff 100%);
+        font-family: "Segoe UI", sans-serif;
+      }
+      .fade-in {
+        animation: fadeInUp 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Header (fixed) -- keep the same height as --header-h */
+      header.fixed {
+        height: var(--header-h);
+      }
+
+      /* Sidebar (keeps your .open toggles) */
+      .sidebar-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(33, 33, 33, 0.35);
+        display: none;
+      }
+      .sidebar-box {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        max-width: 22rem;
+        background: #fff;
+        box-shadow: -4px 0 30px #6366f155;
+        z-index: 51;
+        transition: transform 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        border-top-left-radius: 1rem;
+        border-bottom-left-radius: 1rem;
+        padding: 2rem 1.2rem;
+        transform: translateX(120%);
+      }
+      @media (min-width: 640px) {
+        .sidebar-box {
+          width: 17rem;
+        }
+      }
+      .sidebar-bg.open {
+        display: block;
+      }
+      .sidebar-box.open {
+        transform: translateX(0);
+      }
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.05rem;
+        padding: 0.9rem;
+        border-radius: 0.7rem;
+        color: #3730a3;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.12s;
+        margin-bottom: 0.4rem;
+      }
+      .sidebar-link:hover {
+        background: #e0e7ff;
+        color: #4f46e5;
+      }
+      .sidebar-profile {
+        padding: 1rem;
+        background: #e0e7ff;
+        color: #3730a3;
+        border-radius: 0.7rem;
+        font-weight: 500;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        width: 100%;
+      }
+      .sidebar-logout {
+        margin-top: 1.6rem;
+        padding: 0.9rem;
+        background: #f8fafc;
+        color: #b91c1c;
+        border-radius: 0.7rem;
+        font-weight: 500;
+        width: 100%;
+      }
+      .sidebar-logout:hover {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .notification-counter {
+        background: #dc2626;
+        color: white;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.12rem 0.5rem;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Custom Multi-select */
+      .custom-multiselect {
+        position: relative;
+      }
+      .custom-multiselect button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1.5px solid #d1d5db;
+        border-radius: 0.5rem;
+        background: white;
+      }
+      .custom-multiselect-options {
+        position: absolute;
+        z-index: 10;
+        top: 105%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1.5px solid #d1d5db;
+        border-radius: 0.5rem;
+        max-height: 140px;
+        overflow-y: auto;
+        display: none;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      }
+      .custom-multiselect-options.show {
+        display: block;
+      }
+      .category-badge {
+        display: inline-block;
+        background: #4f46e5;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+      }
+
+      table th {
+        background: #4f46e5;
+        color: white;
+        font-weight: 600;
+      }
+      table tbody tr:hover {
+        background: #eef2ff;
+        cursor: pointer;
+      }
+
+      /* Modal */
+      .modal-bg {
+        position: fixed;
+        inset: 0;
+        background: rgba(33, 33, 33, 0.32);
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-bg.active {
+        display: flex;
+      }
+      .modal-box {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      }
+      .modal-box h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #4f46e5;
+        margin-bottom: 1rem;
+      }
+      .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+      }
+      .modal-buttons button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+      }
+      .save-btn {
+        background: #4f46e5;
+        color: white;
+      }
+      .save-btn:hover {
+        background: #3730a3;
+      }
+      .cancel-btn {
+        background: #f3f4f6;
+        color: #374151;
+      }
+      .cancel-btn:hover {
+        background: #e5e7eb;
+      }
+
+      /* Mobile cards view */
+      .cards-mobile {
+        display: none;
+        gap: 12px;
+      }
+      .card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 12px;
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.06);
+      }
+      .card .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+      }
+      .card .badges {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: #4f46e5;
+        color: white;
+      }
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+      .btn-muted {
+        background: #f3f4f6;
+        color: #374151;
+      }
+
+      /* Responsive rules */
+      @media (max-width: 767px) {
+        /* show mobile cards, hide desktop table */
+        .cards-mobile {
+          display: flex;
+          flex-direction: column;
+        }
+        .table-desktop {
+          display: none;
+        }
+        /* make form full-width stacked and Add button full width */
+        #addTechnicianForm button[type="submit"] {
+          width: 100%;
+          display: block;
+        }
+        .custom-multiselect button {
+          padding-right: 0.5rem;
+        }
+        .filter-row {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        /* tighten mobile spacing to reduce vertical footprint */
+        .card {
+          padding: 10px;
+        }
+        .card .row > div {
+          gap: 6px;
+        }
+        .card .small-muted {
+          font-size: 0.8rem;
+        }
+        .category-badge {
+          font-size: 0.75rem;
+          padding: 0.15rem 0.45rem;
+        }
+
+        /* limit any very tall table wrappers */
+        .table-desktop .overflow-y-auto {
+          max-height: 60vh;
+        }
+      }
+      @media (min-width: 768px) {
+        .cards-mobile {
+          display: none;
+        }
+        .table-desktop {
+          display: block;
+        }
+        #addTechnicianForm button[type="submit"] {
+          width: auto;
+        }
+      }
+
+      .small-muted {
+        font-size: 0.85rem;
+        color: #6b7280;
+      }
+      .sr-only {
+        position: absolute;
+        left: -10000px;
+        top: auto;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+
+      /* ---------- Layout tweaks requested by user ---------- */
+      /* Make the main area fill the viewport height minus header so the 'middle' container visually extends to the bottom */
+      main {
+        min-height: calc(100vh - var(--header-h) - 1rem);
+        padding-bottom: 1.25rem;
+      }
+
+      /* Add a gentle spacer at the bottom of the desktop table only (so it "extends" vertically at the bottom) */
+      .table-desktop::after {
+        content: "";
+        display: block;
+        height: 2rem;
+      }
+      /* Also add a small spacer for mobile cards so they don't butt directly against the viewport bottom */
+      .cards-mobile::after {
+        content: "";
+        display: block;
+        height: 1.25rem;
+      }
+
+      /* If you want more bottom extension, change the .table-desktop::after height value */
+
+      /* Keep scrollable table comfortable but avoid taking the whole screen on smaller devices */
+      .table-desktop .overflow-y-auto {
+        max-height: 40vh;
+      }
+      @media (min-width: 1024px) {
+        .table-desktop .overflow-y-auto {
+          max-height: 56vh;
+        }
+      }
+
+      /* Ensure header doesn't overlap focus outlines when keyboard-navigating */
+      :focus {
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+
+  <body class="fade-in">
+    <!-- Header -->
+    <header
+      class="fixed top-0 left-0 right-0 bg-indigo-600 text-white flex items-center px-4 shadow z-50"
+      style="height: var(--header-h)"
+    >
+      <div class="flex items-center gap-3">
+        <img src="dut.png" alt="DUT Logo" class="h-10" />
+        <span class="font-extrabold text-lg">FIX-IT DUT</span>
+      </div>
+      <button
+        id="sidebarOpenBtn"
+        aria-label="Open sidebar"
+        class="ml-auto p-2 rounded-full hover:bg-indigo-700 focus:outline-none"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10Zm0 5.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Sidebar -->
+    <div id="sidebarBg" class="sidebar-bg" aria-hidden="true"></div>
+    <nav id="sidebarBox" class="sidebar-box" aria-hidden="true">
+      <button
+        id="sidebarCloseBtn"
+        class="absolute top-3 left-3 text-gray-400 hover:text-gray-900 text-2xl font-bold bg-transparent border-none"
+      >
+        &times;
+      </button>
+      <div class="mt-6 flex flex-col gap-3">
+        <!-- <button id="sidebarCloseBtn" class="absolute top-3 left-3 text-gray-400 hover:text-gray-900 text-2xl font-bold bg-transparent border-none">&times;</button> -->
+        <!-- <div class="mt-6 flex flex-col gap-3"> -->
+        <a
+          href="/admin/profile"
+          id="sidebarProfileBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View profile"
+        >
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="#4f46e5"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.25a8.25 8.25 0 0 1 15.998 0 .75.75 0 0 1-.75.75h-14.5a.75.75 0 0 1-.748-.75Z"
+            />
+          </svg>
+          <span>Profile</span>
+        </a>
+
+        <a
+          href="/admin/dashboard"
+          id="sidebarDashboardBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View dashboard"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#4f46e5"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a
+          href="/admin/reports"
+          id="sidebarReportBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View reports"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M13.887 3.182c.396.037.79.08 1.183.128C16.194 3.45 17 4.414 17 5.517V16.75A2.25 2.25 0 0 1 14.75 19h-9.5A2.25 2.25 0 0 1 3 16.75V5.517c0-1.103.806-2.068 1.93-2.207.393-.048.787-.09 1.183-.128A3.001 3.001 0 0 1 9 1h2c1.373 0 2.531.923 2.887 2.182ZM7.5 4A1.5 1.5 0 0 1 9 2.5h2A1.5 1.5 0 0 1 12.5 4v.5h-5V4Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Report Page</span>
+        </a>
+
+        <a
+          href="/admin/notification"
+          id="sidebarNotificationsBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium relative"
+          aria-label="View notifications"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Notifications</span>
+          <span
+            id="notificationCounter"
+            class="absolute right-3 top-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5"
+            style="display: none"
+          ></span>
+        </a>
+
+        <a
+          href="/admin/technicians"
+          id="sidebarTechniciansBtn"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium"
+          aria-label="View technicians"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#4f46e5"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path d="M10 3a3 3 0 11-6 0 3 3 0 016 0Z" />
+            <path
+              fill-rule="evenodd"
+              d="M4 8a4 4 0 018 0v.5a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 014 8.5V8Z"
+              clip-rule="evenodd"
+            />
+            <path d="M14 9a3 3 0 100 6 3 3 0 000-6Z" />
+            <path
+              d="M10.5 15.134a4.492 4.492 0 01-.5-2.134v-.5A1.5 1.5 0 0111.5 11h5a1.5 1.5 0 011.5 1.5v.5a4.5 4.5 0 01-.5 2.134A5.978 5.978 0 0014 17a5.978 5.978 0 00-3.5-1.866Z"
+            />
+          </svg>
+          <span>Technicians</span>
+        </a>
+
+        <button
+          id="sidebarLogoutBtn"
+          type="button"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl bg-red-100 text-red-800 font-medium w-full"
+          aria-label="Logout"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#dc2626"
+            width="24"
+            height="24"
+            class="shrink-0"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M17 4.25A2.25 2.25 0 0 0 14.75 2h-5.5A2.25 2.25 0 0 0 7 4.25v2a.75.75 0 0 0 1.5 0v-2a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1-.75-.75v-2a.75.75 0 0 0-1.5 0v2A2.25 2.25 0 0 0 9.25 18h5.5A2.25 2.25 0 0 0 17 15.75V4.25Z"
+              clip-rule="evenodd"
+            />
+            <path
+              fill-rule="evenodd"
+              d="M14 10a.75.75 0 0 0-.75-.75H3.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114l-1.048-.943h9.546A.75.75 0 0 0 14 10Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main -->
+    <main
+      class="pt-[calc(var(--header-h)+0.5rem)] max-w-7xl mx-auto px-4 pb-12"
+    >
+      <h1 class="text-2xl font-extrabold leading-tight">
+        Technician Management
+      </h1>
+
+      <!-- Add Technician Form -->
+      <div class="mb-6 bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+        <form
+          id="addTechnicianForm"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          <div>
+            <label for="staffId" class="font-medium text-gray-700"
+              >Staff ID</label
+            >
+            <input
+              type="text"
+              id="staffId"
+              class="w-full border px-3 py-2 rounded-lg"
+              maxlength="8"
+              pattern="\d{8}"
+              title="Staff ID must be 8 digits"
+              inputmode="numeric"
+              placeholder="12345678"
+            />
+          </div>
+          <div>
+            <label for="technicianName" class="font-medium text-gray-700"
+              >Name</label
+            >
+            <input
+              type="text"
+              id="technicianName"
+              class="w-full border px-3 py-2 rounded-lg"
+              placeholder="Jane Doe"
+            />
+          </div>
+          <div class="custom-multiselect">
+            <label class="font-medium text-gray-700">Category</label>
+            <button
+              type="button"
+              id="categoryToggleBtn"
+              aria-haspopup="true"
+              aria-expanded="false"
+              class="w-full text-left"
+            >
+              Select Categories <span class="float-right">▼</span>
+            </button>
+            <div
+              id="categoryOptions"
+              class="custom-multiselect-options"
+              role="menu"
+              aria-label="Category options"
+            >
+              <label class="flex items-center px-3 py-2"
+                ><input type="checkbox" value="Plumbing" class="mr-2" />
+                Plumbing</label
+              >
+              <label class="flex items-center px-3 py-2"
+                ><input type="checkbox" value="Infrastructure" class="mr-2" />
+                Infrastructure</label
+              >
+              <label class="flex items-center px-3 py-2"
+                ><input type="checkbox" value="Electrical" class="mr-2" />
+                Electrical</label
+              >
+              <label class="flex items-center px-3 py-2"
+                ><input type="checkbox" value="General/other" class="mr-2" />
+                General/other</label
+              >
+            </div>
+          </div>
+          <div>
+            <label for="availabilityStatus" class="font-medium text-gray-700"
+              >Availability Status</label
+            >
+            <select
+              id="availabilityStatus"
+              class="w-full border px-3 py-2 rounded-lg"
+            >
+              <option value="" disabled selected>Select status</option>
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="col-span-full">
+            <button
+              type="submit"
+              class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700"
+            >
+              Add Technician
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filters -->
+      <div
+        class="mb-4 flex flex-col md:flex-row gap-4 items-start md:items-center"
+      >
+        <div class="flex gap-2 items-center">
+          <label for="statusFilter" class="font-medium text-gray-700"
+            >Filter by Status:</label
+          >
+          <select id="statusFilter" class="border px-3 py-2 rounded-lg">
+            <option value="All" selected>All</option>
+            <option value="Active">Active</option>
+            <option value="On Leave">On Leave</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="flex gap-2 items-center flex-1">
+          <label for="searchInput" class="font-medium text-gray-700"
+            >Search:</label
+          >
+          <input
+            type="text"
+            id="searchInput"
+            class="border px-3 py-2 rounded-lg w-full md:w-72"
+            placeholder="Search by name or category..."
+          />
+        </div>
+      </div>
+
+      <!-- Desktop table (visible md+) -->
+      <div
+        class="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg table-desktop overflow-hidden"
+      >
+        <div class="overflow-y-auto max-h-96">
+          <table class="min-w-full table-auto">
+            <thead class="bg-indigo-500 text-white sticky top-0">
+              <tr>
+                <th class="px-4 py-2 text-left">Staff ID</th>
+                <th class="px-4 py-2 text-left">Name</th>
+                <th class="px-4 py-2 text-left">Categories</th>
+                <th class="px-4 py-2 text-left">Assigned Requests</th>
+                <th class="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="techniciansTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Mobile cards (visible < md) -->
+      <div id="mobileCardsWrap" class="cards-mobile mt-4"></div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div
+      id="editModal"
+      class="modal-bg"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="editTitle"
+    >
+      <div class="modal-box">
+        <h3 id="editTitle">Edit Technician</h3>
+        <form id="editTechnicianForm">
+          <label class="block mb-2"
+            >Staff ID
+            <input
+              type="text"
+              id="editStaffId"
+              disabled
+              class="w-full border px-3 py-2 rounded-lg"
+            />
+          </label>
+          <label class="block mb-2"
+            >Name
+            <input
+              type="text"
+              id="editTechnicianName"
+              class="w-full border px-3 py-2 rounded-lg"
+            />
+          </label>
+
+          <label class="block mb-2">Category</label>
+          <div
+            id="editCategoryOptions"
+            class="space-y-2 border px-3 py-2 rounded-lg"
+          >
+            <label class="flex items-center"
+              ><input type="checkbox" value="Plumbing" class="mr-2" />
+              Plumbing</label
+            >
+            <label class="flex items-center"
+              ><input type="checkbox" value="Infrastructure" class="mr-2" />
+              Infrastructure</label
+            >
+            <label class="flex items-center"
+              ><input type="checkbox" value="Electrical" class="mr-2" />
+              Electrical</label
+            >
+            <label class="flex items-center"
+              ><input type="checkbox" value="General/other" class="mr-2" />
+              General/other</label
+            >
+          </div>
+
+          <label class="block mb-2"
+            >Availability Status
+            <select
+              id="editAvailabilityStatus"
+              class="w-full border px-3 py-2 rounded-lg"
+            >
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </label>
+
+          <div class="modal-buttons mt-3">
+            <button type="submit" class="save-btn">Save</button>
+            <button type="button" id="cancelEditBtn" class="cancel-btn">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin-technicians.js') }}"></script>
+  </body>
+</html>

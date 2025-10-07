@@ -1,14 +1,26 @@
+import os
 import random
 import smtplib
 import socket
 import sqlite3
+import uuid
 from datetime import datetime, timedelta
 from enum import Enum
 
 from email_validator import EmailNotValidError, validate_email
-from flask import Flask, jsonify, redirect, render_template, request, session
+from flask import (
+    Flask,
+    current_app,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    session,
+)
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 # My app
 app = Flask(__name__)
@@ -34,8 +46,8 @@ def send_email(to_email, subject, body):
     Simplest option: use Gmail SMTP or Mailtrap.io (free).
     For a school project you can hardcode Mailtrap credentials.
     """
-    from_email = "aa**********73"
-    from_password = "37**********dc"
+    from_email = "aa66b1448e7173"
+    from_password = "370f53b9a831dc"
 
     try:
         with smtplib.SMTP("smtp.mailtrap.io", 587) as server:
@@ -66,6 +78,46 @@ class UserRole(Enum):
     TECHNICIAN = "technician"
 
 
+DUMMY_TECHNICIANS = [
+    {"id": 1, "name": "John Doe", "current_jobs": 2},
+    {"id": 2, "name": "Jane Smith", "current_jobs": 1},
+    {"id": 3, "name": "Ali Musa", "current_jobs": 0},
+]
+
+reports = [
+    {
+        "ref": "R-2025-001",
+        "category": "Electrical",
+        "type": "Light Bulb",
+        "status": "pending",
+        "technician": "John Doe",
+        "count": 2,
+        "description": "Light not turning on in Lecture Room 1.",
+        "campus": "Steve Biko",
+    },
+    {
+        "ref": "R-2025-002",
+        "category": "Plumbing",
+        "type": "Sink",
+        "status": "in-progress",
+        "technician": "Mary Smith",
+        "count": 4,
+        "description": "Leaking sink in staff restroom.",
+        "campus": "ML Sultan",
+    },
+    {
+        "ref": "R-2025-003",
+        "category": "Infrastructure",
+        "type": "Door",
+        "status": "done",
+        "technician": "Unassigned",
+        "count": 0,
+        "description": "Broken door in classroom 4B.",
+        "campus": "Ritson",
+    },
+]
+
+
 # Data class(not the same thing) ~ row of data
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
@@ -82,13 +134,15 @@ class Task(db.Model):
 
 # Base User Model
 class User(db.Model):
+    __tablename__ = "user"
+
     user_id = db.Column(db.Integer, primary_key=True)
     user_email = db.Column(db.String(120), unique=True, nullable=False)
     user_password_hash = db.Column(db.String(255), nullable=False)
     user_role = db.Column(db.Enum(UserRole), nullable=False)
-    surname = db.Column(db.String(100))
+    user_surname = db.Column(db.String(100))
     initials = db.Column(db.String(10))
-    system_id = db.Column(db.String(20))
+    user_system_id = db.Column(db.String(20))
     user_created = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_pass_hash(self, password):
@@ -103,33 +157,82 @@ class Report(db.Model):
 
     report_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
-
-    # Technician assignment (NEW)
-    # technician_id = db.Column(
-    #     db.Integer, db.ForeignKey("technicians.id"), nullable=True
-    # )
-
-    # Basic report info
     category = db.Column(db.String(50), nullable=False)
     type = db.Column(db.String(50), nullable=False)
     campus = db.Column(db.String(50), nullable=False)
     block = db.Column(db.String(50), nullable=False)
     nearest_class = db.Column(db.String(50))
     notes = db.Column(db.Text, nullable=False)
-
-    # Status tracking
-    status = db.Column(
-        db.String(20), default="pending"
-    )  # pending / in_progress / resolved
-
-    # Timestamp
+    status = db.Column(db.String(20), default="pending")
+    image_url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationship
-    # technician = db.relationship("Technician", back_populates="assigned_reports")
+    # New
+    assignment = db.relationship("Assignment", back_populates="report", uselist=False)
 
     def __repr__(self):
         return f"<Report {self.report_id} by User {self.user_id}>"
+
+
+class Assignment(db.Model):
+    __tablename__ = "assignments"
+
+    assignment_id = db.Column(db.Integer, primary_key=True)
+    report_id = db.Column(
+        db.Integer, db.ForeignKey("reports.report_id"), nullable=False
+    )
+    technician_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
+    assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default="in-progress")
+
+    report = db.relationship("Report", back_populates="assignment")
+    technician = db.relationship("User", foreign_keys=[technician_id])
+    admin = db.relationship("User", foreign_keys=[admin_id])
+
+
+class NotificationType(Enum):
+    STATUS_UPDATE = "Status Update"
+    BROADCAST = "Broadcast"
+    ASSIGNMENT = "Assignment"
+    MESSAGE = "Message"
+
+
+class Notification(db.Model):
+    __tablename__ = "notifications"
+
+    notification_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
+
+    type = db.Column(
+        db.Enum(NotificationType),
+        nullable=False,
+        default=NotificationType.STATUS_UPDATE,
+    )
+    # may be None for broadcasts
+    report_ref = db.Column(db.String(50), nullable=True)
+    heading = db.Column(db.String(150), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    sender = db.Column(db.String(50), nullable=False, default="System")
+
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Optional relationships
+    user = db.relationship("User", backref=db.backref("notifications", lazy=True))
+
+    def to_dict(self):
+        """Convert to dict for JSON responses."""
+        return {
+            "id": self.notification_id,
+            "type": self.type.value,
+            "report_ref": self.report_ref or "—",
+            "heading": self.heading,
+            "message": self.message,
+            "sender": self.sender,
+            "date": self.created_at.isoformat(),
+            "read": self.is_read,
+        }
 
 
 def is_valid_dut_email(email: str) -> bool:
@@ -484,16 +587,16 @@ def sign_up():
         initials = result["initials"]
         record_id = result["id"]
         student_number = email.split("@")[0][:8]
-        system_id = f"{student_number}#{record_id}"
+        user_system_id = f"{student_number}#{record_id}"
 
         # Create User
         try:
             new_user = User()
             new_user.user_email = email
             new_user.user_role = UserRole[role]
-            new_user.surname = surname
+            new_user.user_surname = surname
             new_user.initials = initials
-            new_user.system_id = system_id
+            new_user.user_system_id = user_system_id
             new_user.set_pass_hash(password)
 
             db.session.add(new_user)
@@ -517,6 +620,12 @@ def dashboard():
             return jsonify({"success": False, "message": "User not logged in"}), 401
         return redirect("/sign-in")
 
+    user = User.query.get(session["user_id"])
+    if not user:
+        return redirect("/sign-in")
+
+    formatted_name = f"{user.initials.upper()} {user.user_surname.capitalize()}"
+
     # If it's a fetch request asking for JSON
     if "application/json" in request.headers.get("Accept", ""):
         try:
@@ -536,6 +645,9 @@ def dashboard():
                         "type": r.type,
                         "status": getattr(r, "status", "pending"),
                         "notes": r.notes,
+                        "image_url": f"/{r.image_url}"
+                        if getattr(r, "image_url", None)
+                        else None,
                         "date": r.created_at.strftime("%Y-%m-%d")
                         if hasattr(r, "created_at")
                         else "",
@@ -552,61 +664,108 @@ def dashboard():
             return jsonify({"success": False, "message": "Server error"}), 500
 
     # Otherwise render the dashboard page
-    return render_template("dashboard.html")
+    return render_template("dashboard.html", user_name=formatted_name)
 
 
-@app.route("/user/report", methods=["POST", "GET"])
+@app.route("/user/report", methods=["GET", "POST"])
 def report():
     if "user_id" not in session:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"success": False, "message": "User not logged in"}), 401
         return redirect("/sign-in")
-        # return jsonify({"success": False, "message": "User not logged in"}), 401
 
     if request.method == "POST":
-        # Detect JSON vs traditional form POST
+        # ✅ Handle both JSON and form data
         if request.is_json:
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
             category = data.get("category")
-            type = data.get("type")
+            type_ = data.get("type")
             campus = data.get("campus")
             block = data.get("block")
             nearest_class = data.get("nearestClass")
             notes = data.get("notes")
+            image_path = data.get("imagePath")  # optional if sent via JSON
         else:
             category = request.form.get("category")
-            type = request.form.get("type")
+            type_ = request.form.get("type")
             campus = request.form.get("campus")
             block = request.form.get("block")
             nearest_class = request.form.get("nearestClass")
             notes = request.form.get("notes")
+            image_path = request.form.get("imagePath")
 
-        try:
-            new_report = Report()
-            new_report.user_id = session["user_id"]
-            new_report.category = category
-            new_report.campus = campus
-            new_report.block = block
-            new_report.notes = notes
-            new_report.type = type
-            new_report.nearest_class = nearest_class
+            # ✅ handle optional file upload
+            image = request.files.get("issueImage")
+            image_path = None
+            if image and image.filename:
+                filename = secure_filename(image.filename)
+                ext = os.path.splitext(filename)[1]
+                unique_name = f"{uuid.uuid4().hex}{ext}"
 
-            db.session.add(new_report)
-            db.session.commit()
+                upload_dir = os.path.join(
+                    current_app.instance_path, "uploads", "reports"
+                )
+                os.makedirs(upload_dir, exist_ok=True)
+                image.save(os.path.join(upload_dir, unique_name))
 
-            msg = "Report submitted successfully."
+                # store relative path for retrieval
+                image_path = f"uploads/reports/{unique_name}"
+
+        # ✅ validate required fields
+        if not category or not type_ or not campus or not notes:
             if request.is_json:
-                return jsonify({"success": True, "message": msg}), 200
-            else:
-                return redirect("/dashboard")
+                return jsonify(
+                    {"success": False, "message": "Missing required fields"}
+                ), 400
+            # flash("Missing required fields.", "error")
+            return redirect(request.referrer or "/user/report")
 
-        except Exception as e:
-            print(f"ERROR: {e}")
-            msg = "An unexpected error occurred. Please try again."
-            if request.is_json:
-                return jsonify({"success": False, "message": msg}), 500
-            else:
-                return msg, 500
+        # ✅ create and save report
+        new_report = Report()
+        new_report.user_id = session["user_id"]
+        new_report.category = category
+        new_report.type = type_
+        new_report.campus = campus
+        new_report.block = block
+        new_report.nearest_class = nearest_class
+        new_report.notes = notes
+        new_report.image_url = image_path
 
+        db.session.add(new_report)
+        db.session.commit()
+
+        # ✅ Create a notification confirming the report submission
+        confirmation_notif = Notification()
+        confirmation_notif.user_id = session["user_id"]
+        confirmation_notif.type = NotificationType.STATUS_UPDATE
+        confirmation_notif.report_ref = str(new_report.report_id)
+        confirmation_notif.heading = "Report Submitted Successfully"
+        confirmation_notif.message = (
+            f"Your report (#{new_report.report_id}) regarding '{category}' "
+            f"has been received and is pending review. Thank you for submitting."
+        )
+        confirmation_notif.sender = "System"
+        confirmation_notif.created_at = datetime.utcnow()
+
+        db.session.add(confirmation_notif)
+        db.session.commit()
+
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            # flash("Report submitted successfully!", "success")
+            return jsonify(
+                {"success": True, "message": "Report submitted successfully"}
+            )
+        else:
+            return redirect("/user/dashboard")
+
+    # ✅ default return for GET
     return render_template("report.html")
+
+
+@app.route("/uploads/reports/<filename>")
+def get_report_image(filename):
+    upload_dir = os.path.join(current_app.instance_path, "uploads", "reports")
+    return send_from_directory(upload_dir, filename)
 
 
 @app.route("/user/profile", methods=["GET"])
@@ -630,7 +789,7 @@ def profile():
         return "User not found", 404
 
     # Determine gender placeholder
-    gender = getattr(user, "gender", None) or random.choice(["male", "female"])
+    # gender = getattr(user, "gender", None) or random.choice(["male", "female"])
 
     # Check if this is a JSON request (AJAX fetch)
     if (
@@ -640,11 +799,10 @@ def profile():
         return jsonify(
             {
                 "success": True,
-                "id": user.user_id,
+                "id": user.user_system_id,
                 "email": user.user_email,
-                "fullName": "",  # placeholder
-                "surname": "",  # placeholder
-                "gender": gender,
+                "initials": user.initials,  # placeholder
+                "surname": user.user_surname,  # placeholder
                 "role": user.user_role.value,
                 "passwordLength": 12,  # placeholder, TODO: Calculate the real length before hashing
             }
@@ -654,75 +812,284 @@ def profile():
     return render_template("profile.html")
 
 
+@app.route("/user/notifications")
+def notifications_page():
+    return render_template("notifications.html")
+
+
+@app.route("/user/notifications-data")
+def notifications_data():
+    # Check if user is logged in
+    if "user_id" not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+        return redirect("/sign-in")
+
+    user_id = session["user_id"]
+    # print(user_id)
+
+    # Fetch notifications for this user, newest first
+    notifications = (
+        Notification.query.filter_by(user_id=user_id)
+        .order_by(Notification.created_at.desc())
+        .all()
+    )
+
+    # print(notifications)
+
+    # Convert notifications to dictionary for JSON response
+    notifications_list = [notif.to_dict() for notif in notifications]
+    # print(notifications_list)
+
+    return jsonify({"success": True, "notifications": notifications_list})
+
+
+@app.route("/user/notifications-read/<int:notif_id>", methods=["POST"])
+def mark_notification_read(notif_id):
+    return jsonify(
+        {"success": True, "message": f"Notification {notif_id} marked as read."}
+    )
+
+
 # ADMIN ROUTES FROM HERE
 
 
-@app.route("/admin/dashboard", methods=["GET"])
+@app.route("/admin/dashboard", methods=["GET", "PATCH"])
 def admin_dashboard():
-    # ---- Authentication check ----
+    # ---- Authentication ----
     if "user_id" not in session:
-        if request.accept_mimetypes["application/json"]:
+        if request.accept_mimetypes.best == "application/json":
             return jsonify({"success": False, "message": "User not logged in"}), 401
         return redirect("/sign-in")
 
-    # ---- AJAX (fetch) GET ----
-    if request.method == "GET" and request.accept_mimetypes.best == "application/json":
+    # ---- JSON (fetch) GET ----
+    if request.accept_mimetypes.best == "application/json":
         try:
-            dummy_requests = [
-                {
-                    "id": 1,
-                    "campus": "Main Campus",
-                    "block": "A",
-                    "category": "Electrical",
-                    "type": "Light bulb replacement",
-                    "status": "pending",
-                    "technician": "John Doe",
-                    "notes": "Room A101 light flickers occasionally",
-                },
-                {
-                    "id": 2,
-                    "campus": "North Campus",
-                    "block": "C",
-                    "category": "Plumbing",
-                    "type": "Leak repair",
-                    "status": "in-progress",
-                    "technician": "Jane Smith",
-                    "notes": "Water leakage near the restroom",
-                },
-                {
-                    "id": 3,
-                    "campus": "South Campus",
-                    "block": "B",
-                    "category": "IT",
-                    "type": "Network issue",
-                    "status": "done",
-                    "technician": "Michael Brown",
-                    "notes": "Internet restored successfully in Lab B204",
-                },
-                {
-                    "id": 4,
-                    "campus": "Main Campus",
-                    "block": "D",
-                    "category": "Maintenance",
-                    "type": "Door hinge repair",
-                    "status": "pending",
-                    "technician": "Unassigned",
-                    "notes": "Door squeaks loudly when opened",
-                },
-            ]
-            return jsonify(dummy_requests)
+            # Get all reports, join assignments & technician data if available
+            reports = (
+                Report.query.outerjoin(Assignment)
+                .order_by(Report.report_id.desc())
+                .all()
+            )
+
+            result = []
+            for r in reports:
+                assigned_tech = (
+                    r.assignment.technician
+                    if r.assignment and r.assignment.technician
+                    else None
+                )
+                result.append(
+                    {
+                        "id": r.report_id,
+                        "campus": r.campus,
+                        "block": r.block,
+                        "category": r.category,
+                        "type": r.type,
+                        "status": r.status,
+                        "technician": f"{assigned_tech.user_surname} {assigned_tech.initials}"
+                        if assigned_tech
+                        else "Unassigned",
+                        "notes": r.notes,
+                    }
+                )
+
+            return jsonify(result), 200
+
         except Exception as e:
             print(f"ERROR fetching reports: {e}")
             return jsonify({"success": False, "message": "Server error"}), 500
 
-    # ---- Handle POST (future status updates etc.) ----
-    if request.method == "POST":
-        # you can add logic later here for updating request statuses, etc.
-        return jsonify({"success": True, "message": "POST received"})
+    # ---- PATCH (status update) ----
+    if request.method == "PATCH":
+        try:
+            data = request.get_json()
+            report_id = data.get("id")
+            new_status = data.get("status")
 
-    # ---- Normal browser GET (page render) ----
-    # if request.method == "GET":
+            if not report_id or not new_status:
+                return jsonify({"success": False, "message": "Missing data"}), 400
+
+            report = Report.query.get(report_id)
+            if not report:
+                return jsonify({"success": False, "message": "Report not found"}), 404
+
+            report.status = new_status
+            db.session.commit()
+
+            return jsonify({"success": True, "message": "Status updated"}), 200
+
+        except Exception as e:
+            print(f"ERROR updating report: {e}")
+            db.session.rollback()
+            return jsonify({"success": False, "message": "Update failed"}), 500
+
+    # ---- Normal page load ----
     return render_template("admin-dashboard.html")
+
+
+# --- ASSIGN TECHNICIAN TO REPORT ---
+@app.route("/admin/assign", methods=["POST"])
+def assign_technician():
+    if "user_id" not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    data = request.get_json()
+    report_id = data.get("report_id")
+    technician_id = data.get("technician_id")
+    admin_id = session["user_id"]
+
+    if not report_id or not technician_id:
+        return jsonify({"success": False, "message": "Missing data"}), 400
+
+    report = Report.query.get(report_id)
+    if not report:
+        return jsonify({"success": False, "message": "Report not found"}), 404
+
+    try:
+        # Check if assignment exists
+        assignment = report.assignment
+        if not assignment:
+            assignment = Assignment()
+            assignment.report_id = report_id
+            assignment.admin_id = admin_id
+            assignment.technician_id = technician_id
+            db.session.add(assignment)
+        else:
+            assignment.technician_id = technician_id
+            assignment.admin_id = admin_id  # optional: update who reassigned
+
+        db.session.commit()
+
+        # Optional: create notification for technician
+        technician = User.query.get(technician_id)
+        if technician:
+            notification = Notification()
+            notification.user_id = technician.user_id
+            notification.type = NotificationType.ASSIGNMENT
+            notification.report_ref = str(report.report_id)
+            notification.heading = "New Assignment"
+            notification.message = (
+                f"You have been assigned to report #{report.report_id}."
+            )
+            notification.sender = "System"
+
+            db.session.add(notification)
+            db.session.commit()
+
+        return jsonify({"success": True, "message": "Technician assigned"}), 200
+
+    except Exception as e:
+        print(f"ERROR assigning technician: {e}")
+        db.session.rollback()
+        return jsonify({"success": False, "message": "Assignment failed"}), 500
+
+
+# --- SEND NOTIFICATION TO TECHNICIAN ---
+@app.route("/admin/notify", methods=["POST"])
+def notify_technician():
+    if "user_id" not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    data = request.get_json()
+    report_id = data.get("report_id")
+    subject = data.get("subject")
+    message = data.get("message")
+
+    if not report_id or not subject or not message:
+        return jsonify({"success": False, "message": "Missing data"}), 400
+
+    report = Report.query.get(report_id)
+    if not report or not report.assignment or not report.assignment.technician:
+        return jsonify({"success": False, "message": "Report unassigned"}), 400
+
+    technician = report.assignment.technician
+
+    try:
+        notification = Notification()
+        notification.user_id = technician.user_id
+        notification.type = NotificationType.MESSAGE
+        notification.report_ref = str(report.report_id)
+        notification.heading = subject
+        notification.message = message
+        notification.sender = "Admin"
+
+        db.session.add(notification)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Notification sent"}), 200
+
+    except Exception as e:
+        print(f"ERROR sending notification: {e}")
+        db.session.rollback()
+        return jsonify({"success": False, "message": "Notification failed"}), 500
+
+
+# @app.route("/admin/reports", methods=["GET"])
+# def get_reports():
+#     if "user_id" not in session:
+#         if request.accept_mimetypes["application/json"]:
+#             return jsonify({"success": False, "message": "User not logged in"}), 401
+#         return redirect("/sign-in")
+#
+#     # ---- AJAX (fetch) GET ----
+#     if request.method == "GET" and request.accept_mimetypes.best == "application/json":
+#         try:
+#             # Replace this with real database fetching later
+#             return jsonify(reports)
+#         except Exception as e:
+#             print(f"ERROR fetching reports: {e}")
+#             return jsonify({"success": False, "message": "Server error"}), 500
+#
+#     # ---- Handle POST (future status updates etc.) ----
+#     if request.method == "POST":
+#         # you can add logic later here for updating request statuses, etc.
+#         return jsonify({"success": True, "message": "POST received"})
+#
+#     # ---- Normal browser GET (page render) ----
+#     # if request.method == "GET":
+#     return render_template("admin-reports.html")
+
+
+@app.route("/admin/technicians", methods=["GET"])
+def admin_technicians():
+    if "application/json" in str(request.headers.get("Accept", "")):
+        try:
+            # Query all users with role 'technician'
+            technicians = User.query.filter_by(user_role=UserRole.TECHNICIAN).all()
+            result = [
+                {
+                    "id": t.user_id,
+                    "name": f"{t.user_surname} {t.initials or ''}".strip(),
+                }
+                for t in technicians
+            ]
+            return jsonify(result), 200
+        except Exception as e:
+            print(f"ERROR fetching technicians: {e}")
+            return jsonify({"success": False, "message": "Server error"}), 500
+
+    # Fallback to HTML page render
+    return render_template("admin-technicians.html")
+
+
+@app.route("/admin/reports/<int:report_id>", methods=["GET", "PUT"])
+def admin_report_id(report_id):
+    report = next((r for r in reports if r["id"] == report_id), None)
+    if not report:
+        return jsonify({"error": "Report not found"}), 404
+
+    if request.method == "GET":
+        return jsonify(report)
+
+    if request.method == "PUT":
+        data = request.get_json()
+        # Update only allowed fields
+        for field in ["category", "type", "status", "description", "technician_id"]:
+            if field in data:
+                report[field] = data[field]
+        return jsonify(report)
+
+    # fallback for unsupported methods
+    return jsonify({"error": "Method not allowed"}), 405
 
 
 @app.route("/reset-db")

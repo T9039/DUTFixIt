@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Notifications - FIX-IT DUT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- small helper styles kept minimal -->
+  <style>
+    /* card / notification visuals */
+    .card-static { transition: background .18s, box-shadow .18s, transform .12s; }
+    .card-static:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(15,23,42,0.08); }
+    .notification-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.5rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .icon-overdue { background:#fecaca; color:#991b1b; }
+    .icon-system { background:#fef3c7; color:#92400e; }
+    /* keep fadeInUp keyframe referenced by animate[...] usage */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans bg-[#e0e7ff] bg-[linear-gradient(120deg,#e0e7ff_0%,#c7d2fe_100%)] transition-colors duration-500">
+
+  <!-- Dashboard Shape -->
+  <div class="fixed -top-[120px] -left-[120px] w-screen h-screen opacity-20 pointer-events-none blur-[40px] z-0
+    bg-[radial-gradient(circle_at_25%_25%,#6366f1_0%,transparent_70%),radial-gradient(circle_at_75%_75%,#818cf8_0%,transparent_70%)]">
+  </div>
+
+  <!-- Header -->
+  <header class="bg-indigo-600 flex items-center justify-between py-3 sm:py-4 px-4">
+    <div class="flex items-center gap-3 select-none">
+      <img src="dut.png" alt="DUT Logo" class="h-8 w-auto" />
+      <span class="font-extrabold text-lg text-white">FIX-IT DUT</span>
+    </div>
+    <button id="sidebarOpenBtn" class="ml-2 p-2 sm:p-3 rounded-full hover:bg-indigo-700 focus:outline-none" aria-label="Open sidebar">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" class="w-5 h-5">
+        <path fill-rule="evenodd" d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10Zm0 5.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Sidebar Background -->
+  <div id="sidebarBg" class="hidden fixed inset-0 z-50 bg-black/40" aria-hidden="true"></div>
+
+  <!-- Sidebar Box -->
+  <nav id="sidebarBox"
+       class="fixed top-0 right-0 bottom-0 w-full max-w-[22rem] sm:w-[17rem] bg-white shadow-xl z-50 rounded-tl-xl rounded-bl-xl transform translate-x-full transition-transform duration-300 ease-[cubic-bezier(.36,.07,.19,.97)] p-5"
+       aria-hidden="true">
+    <button id="sidebarCloseBtn" class="absolute top-3 left-3 text-gray-400 hover:text-gray-900 text-2xl font-bold" aria-label="Close sidebar">&times;</button>
+
+    <div class="flex flex-col gap-3 mt-6">
+          <a href="Admin-profile.html" id="sidebarProfileBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View profile">
+        <svg width="24" height="24" fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.25a8.25 8.25 0 0 1 15.998 0 .75.75 0 0 1-.75.75h-14.5a.75.75 0 0 1-.748-.75Z"/></svg>
+        <span>Profile</span>
+      </a>
+
+    <a href="Admin-dashboard.html" id="sidebarDashboardBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View dashboard">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+       viewBox="0 0 24 24" fill="none" stroke="#4f46e5" 
+       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="7" height="9" x="3" y="3" rx="1"/>
+    <rect width="7" height="5" x="14" y="3" rx="1"/>
+    <rect width="7" height="9" x="14" y="12" rx="1"/>
+    <rect width="7" height="5" x="3" y="16" rx="1"/>
+  </svg>
+  <span>Dashboard</span>
+</a>
+           <a href="Admin-report.html" id="sidebarReportBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View reports">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#4f46e5" width="24" height="24" class="shrink-0">
+    <path fill-rule="evenodd" d="M13.887 3.182c.396.037.79.08 1.183.128C16.194 3.45 17 4.414 17 5.517V16.75A2.25 2.25 0 0 1 14.75 19h-9.5A2.25 2.25 0 0 1 3 16.75V5.517c0-1.103.806-2.068 1.93-2.207.393-.048.787-.09 1.183-.128A3.001 3.001 0 0 1 9 1h2c1.373 0 2.531.923 2.887 2.182ZM7.5 4A1.5 1.5 0 0 1 9 2.5h2A1.5 1.5 0 0 1 12.5 4v.5h-5V4Z" clip-rule="evenodd" />
+  </svg>
+  <span>Report Page</span>
+</a>
+
+      <a href="Admin-notification2.html" id="sidebarNotificationsBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium relative" aria-label="View notifications">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#4f46e5" width="24" height="24" class="shrink-0">
+    <path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z" clip-rule="evenodd" />
+  </svg>
+  <span>Notifications</span>
+  <span id="notificationCounter" class="absolute right-3 top-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5" style="display:none"></span>
+</a>
+
+<a href="Technician.html" id="sidebarTechniciansBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View technicians">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#4f46e5" width="24" height="24" class="shrink-0">
+    <path d="M10 3a3 3 0 11-6 0 3 3 0 016 0Z" />
+    <path fill-rule="evenodd" d="M4 8a4 4 0 018 0v.5a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 014 8.5V8Z" clip-rule="evenodd" />
+    <path d="M14 9a3 3 0 100 6 3 3 0 000-6Z" />
+    <path d="M10.5 15.134a4.492 4.492 0 01-.5-2.134v-.5A1.5 1.5 0 0111.5 11h5a1.5 1.5 0 011.5 1.5v.5a4.5 4.5 0 01-.5 2.134A5.978 5.978 0 0014 17a5.978 5.978 0 00-3.5-1.866Z" />
+  </svg>
+  <span>Technicians</span>
+</a>
+
+<button id="sidebarLogoutBtn" type="button" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-red-100 text-red-800 font-medium w-full" aria-label="Logout">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#dc2626" width="24" height="24" class="shrink-0">
+    <path fill-rule="evenodd" d="M17 4.25A2.25 2.25 0 0 0 14.75 2h-5.5A2.25 2.25 0 0 0 7 4.25v2a.75.75 0 0 0 1.5 0v-2a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1-.75-.75v-2a.75.75 0 0 0-1.5 0v2A2.25 2.25 0 0 0 9.25 18h5.5A2.25 2.25 0 0 0 17 15.75V4.25Z" clip-rule="evenodd" />
+    <path fill-rule="evenodd" d="M14 10a.75.75 0 0 0-.75-.75H3.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114l-1.048-.943h9.546A.75.75 0 0 0 14 10Z" clip-rule="evenodd" />
+  </svg>
+  <span>Logout</span>
+</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto mt-6 sm:mt-10 px-2 sm:px-0 animate-[fadeInUp_0.7s_cubic-bezier(.36,.07,.19,.97)] relative z-10">
+    <h1 class="text-xl sm:text-2xl font-bold mb-6 select-none">Admin Notifications</h1>
+
+    <!-- Filters Row -->
+    <section class="mb-8 flex flex-wrap gap-2 sm:gap-4 items-center w-full">
+      <select id="filterStatus" class="rounded-md border p-2 shadow-sm focus:ring-2 focus:ring-indigo-500">
+        <option value="">All Status</option>
+        <option value="unread">Unread</option>
+        <option value="read">Read</option>
+      </select>
+      <button id="clearFilters" class="px-3 py-2 bg-gray-300 rounded shadow hover:bg-gray-400">Clear Filters</button>
+      <input id="filterSearch" type="text" placeholder="Search notifications..." class="rounded-md border p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 w-32 sm:w-56"/>
+    </section>
+
+    <!-- Action Buttons -->
+    <section class="mb-6 flex gap-3 flex-wrap">
+      <button id="markAllRead" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Mark All as Read</button>
+      <button id="refreshNotifications" class="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700">Refresh Notifications</button>
+    </section>
+
+    <!-- Notifications Grid -->
+    <div id="notificationsGrid" class="grid grid-cols-1 gap-6"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-12">
+      <svg class="mx-auto h-24 w-24 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 17h5l-5 5-5-5h5v-13h5v13z"/>
+      </svg>
+      <h3 class="text-lg font-medium text-gray-500 mb-2">No notifications found</h3>
+      <p class="text-gray-400">All caught up! No system alerts or overdue requests.</p>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      const STORAGE_KEY = "dut_requests_v1";
+      const ADMIN_NOTIFICATIONS_KEY = "admin_notifications_v1";
+
+      // Sidebar logic - now toggles Tailwind utility classes
+      const sidebarOpenBtn = document.getElementById("sidebarOpenBtn");
+      const sidebarBg = document.getElementById("sidebarBg");
+      const sidebarBox = document.getElementById("sidebarBox");
+      const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
+      const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
+      const sidebarProfileBtn = document.getElementById("sidebarProfileBtn");
+
+      function openSidebar() {
+        sidebarBg.classList.remove("hidden");
+        sidebarBg.classList.add("block");
+        sidebarBox.classList.remove("translate-x-full");
+        sidebarBox.classList.add("translate-x-0");
+        sidebarBox.setAttribute('aria-hidden', 'false');
+        sidebarBg.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = "hidden";
+      }
+      function closeSidebar() {
+        sidebarBox.classList.add("translate-x-full");
+        sidebarBox.classList.remove("translate-x-0");
+        sidebarBg.classList.add("hidden");
+        sidebarBg.classList.remove("block");
+        sidebarBox.setAttribute('aria-hidden', 'true');
+        sidebarBg.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = "";
+      }
+
+      if (sidebarOpenBtn) sidebarOpenBtn.addEventListener('click', openSidebar);
+      if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
+      if (sidebarBg) sidebarBg.addEventListener('click', function(e) { if (e.target === sidebarBg) closeSidebar(); });
+      if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', function() {
+        localStorage.removeItem('signedInEmail');
+        localStorage.removeItem('userProfile');
+        window.location.href = "sign-in.html";
+      });
+      if (sidebarProfileBtn) sidebarProfileBtn.addEventListener('click', function() { window.location.href = "profile.html"; });
+
+      // Helper function to format location consistently
+      function getFormattedLocation(campus, block) {
+        const parts = [];
+        if (campus && campus.trim()) parts.push(campus.trim());
+        if (block && block.trim()) parts.push(`${block.trim()} Block`);
+        return parts.length > 0 ? parts.join(' - ') : 'Unknown Location';
+      }
+
+      // Generate admin notifications based on request data
+      function generateNotifications() {
+        const requests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        const notifications = [];
+        const now = new Date();
+        let notificationId = 1;
+
+        // Check for overdue requests (5+ days old and still pending/in-progress)
+        requests.forEach(request => {
+          if (!request.date) return;
+          
+          const requestDate = parseDate(request.date);
+          if (isNaN(requestDate)) return;
+          const daysDiff = Math.floor((now - requestDate) / (1000 * 60 * 60 * 24));
+          
+          if (daysDiff >= 5 && (request.status === 'pending' || request.status === 'in-progress')) {
+            notifications.push({
+              id: `NOTIF${String(notificationId++).padStart(3, '0')}`,
+              type: 'overdue',
+              title: `Request ${request.id} Overdue`,
+              message: `${request.category || 'Request'} has been ${request.status} for ${daysDiff} days`,
+              requestId: request.id,
+              category: request.category,
+              location: getFormattedLocation(request.campus, request.block),
+              daysOverdue: daysDiff,
+              timestamp: new Date(now.getTime() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
+              isRead: Math.random() > 0.6,
+              actionUrl: `admin-report.html?request=${encodeURIComponent(request.id)}`
+            });
+          }
+        });
+
+        // Check for system issues (multiple requests of same type in same location)
+        const locationTypeMap = {};
+        requests.forEach(request => {
+          const location = getFormattedLocation(request.campus, request.block);
+          const category = request.category || 'Unknown';
+          const key = `${location}|${category}`;
+          
+          if (!locationTypeMap[key]) locationTypeMap[key] = [];
+          locationTypeMap[key].push(request);
+        });
+
+        Object.entries(locationTypeMap).forEach(([key, reqs]) => {
+          if (reqs.length >= 3) {
+            const parts = key.split('|');
+            const location = parts[0];
+            const category = parts[1];
+            
+            const recentReqs = reqs.filter(r => {
+              const reqDate = parseDate(r.date);
+              if (isNaN(reqDate)) return false;
+              const weeksDiff = (now - reqDate) / (1000 * 60 * 60 * 24 * 7);
+              return weeksDiff <= 2; // Within 2 weeks
+            });
+            
+            if (recentReqs.length >= 3) {
+              const locationParts = location.split(' - ');
+              const blockPart = locationParts.find(part => part.includes('Block'));
+              const titleLocation = blockPart || location;
+              
+              notifications.push({
+                id: `NOTIF${String(notificationId++).padStart(3, '0')}`,
+                type: 'system',
+                title: `Multiple ${titleLocation} Issues Detected`,
+                message: `${recentReqs.length} ${titleLocation} requests within 2 weeks`,
+                category: category,
+                location: location,
+                affectedRequests: recentReqs.map(r => r.id),
+                requestCount: recentReqs.length,
+                timestamp: new Date(now.getTime() - Math.random() * 48 * 60 * 60 * 1000).toISOString(),
+                isRead: Math.random() > 0.7,
+                actionUrl: `admin-report.html?category=${encodeURIComponent(category)}&location=${encodeURIComponent(location)}`
+              });
+            }
+          }
+        });
+
+        // Sort by timestamp (newest first) and limit
+        notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        return notifications.slice(0, 15);
+      }
+
+      function parseDate(dateStr) {
+        // support DD/MM/YYYY or ISO-like strings
+        if (!dateStr || typeof dateStr !== 'string') return new Date(NaN);
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[2],10), parseInt(parts[1],10) - 1, parseInt(parts[0],10));
+        }
+        const parsed = new Date(dateStr);
+        return parsed;
+      }
+
+      function saveNotifications(notifications) {
+        localStorage.setItem(ADMIN_NOTIFICATIONS_KEY, JSON.stringify(notifications));
+        updateNotificationCounters();
+      }
+
+      function loadNotifications() {
+        try { return JSON.parse(localStorage.getItem(ADMIN_NOTIFICATIONS_KEY)) || []; }
+        catch { return []; }
+      }
+
+      function updateNotificationCounters() {
+        const notifications = loadNotifications();
+        const unreadCount = notifications.filter(n => !n.isRead).length;
+        const counter = document.getElementById('notificationCounter');
+        if (counter) {
+          if (unreadCount > 0) {
+            counter.textContent = unreadCount;
+            counter.classList.remove('hidden');
+          } else {
+            counter.classList.add('hidden');
+          }
+        }
+        localStorage.setItem('admin_notification_count', String(unreadCount));
+      }
+
+      function getNotificationIcon(type) {
+        if (type === 'overdue') {
+          return `<div class="notification-icon icon-overdue" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" /></svg>
+          </div>`;
+        } else {
+          return `<div class="notification-icon icon-system" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zM10 13a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" /></svg>
+          </div>`;
+        }
+      }
+
+      function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        if (isNaN(date)) return '';
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        return 'Just now';
+      }
+
+      function getFilters() {
+        return {
+          status: document.getElementById("filterStatus").value,
+          search: document.getElementById("filterSearch").value.trim().toLowerCase()
+        };
+      }
+
+      function filterNotifications(notifications, filters) {
+        return notifications.filter(notification => {
+          if (filters.status) {
+            const isRead = notification.isRead;
+            if (filters.status === 'read' && !isRead) return false;
+            if (filters.status === 'unread' && isRead) return false;
+          }
+          if (filters.search) {
+            const searchStr = `${notification.title} ${notification.message} ${notification.location}`.toLowerCase();
+            if (!searchStr.includes(filters.search)) return false;
+          }
+          return true;
+        });
+      }
+
+      function renderNotifications() {
+        const notifications = loadNotifications();
+        const filters = getFilters();
+        const filtered = filterNotifications(notifications, filters);
+        const grid = document.getElementById('notificationsGrid');
+        const emptyState = document.getElementById('emptyState');
+        
+        updateNotificationCounters();
+
+        if (filtered.length === 0) {
+          grid.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+        grid.innerHTML = '';
+
+        filtered.forEach((notification) => {
+          const notificationCard = document.createElement('div');
+          notificationCard.className = `bg-white rounded-xl shadow card-static p-6 fade-in border-l-4 ${notification.isRead ? 'border-gray-300 opacity-80' : 'border-indigo-500'}`;
+          
+          let detailsHtml = '';
+          if (notification.type === 'overdue') {
+            detailsHtml = `
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600 mt-3">
+                <div><span class="font-semibold">Request ID:</span> ${notification.requestId || '-'}</div>
+                <div><span class="font-semibold">Days Overdue:</span> ${notification.daysOverdue ?? '-'}</div>
+                <div class="sm:col-span-2"><span class="font-semibold">Location:</span> ${notification.location || '-'}</div>
+              </div>
+            `;
+          } else if (notification.type === 'system') {
+            detailsHtml = `
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600 mt-3">
+                <div><span class="font-semibold">Affected Requests:</span> ${notification.requestCount ?? '-'}</div>
+                <div class="sm:col-span-2"><span class="font-semibold">Location:</span> ${notification.location || '-'}</div>
+                <div class="sm:col-span-2"><span class="font-semibold">Request IDs:</span> ${(notification.affectedRequests || []).join(', ')}</div>
+              </div>
+            `;
+          }
+
+          notificationCard.innerHTML = `
+            <div class="flex items-start gap-4">
+              ${getNotificationIcon(notification.type)}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                  <h3 class="font-bold text-lg text-gray-900">${notification.title}</h3>
+                  <span class="text-xs text-gray-500">${formatTimestamp(notification.timestamp)}</span>
+                </div>
+                <p class="text-gray-700 mb-3">${notification.message}</p>
+                ${detailsHtml}
+                <div class="flex items-center justify-end mt-4 pt-3 border-t border-gray-100">
+                  <div class="flex gap-2">
+                    <button class="view-request-btn px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700" data-url="${notification.actionUrl || ''}">
+                      View Request${notification.type === 'system' ? 's' : ''}
+                    </button>
+                    <button class="mark-read-btn px-3 py-1 ${notification.isRead ? 'bg-gray-300 text-gray-600' : 'bg-green-600 text-white'} text-sm rounded hover:opacity-90" data-id="${notification.id}">
+                      ${notification.isRead ? 'Read' : 'Mark Read'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          grid.appendChild(notificationCard);
+        });
+
+        // Add click handlers
+        grid.querySelectorAll('.view-request-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const url = btn.getAttribute('data-url') || 'admin-report.html';
+            window.location.href = url;
+          });
+        });
+
+        grid.querySelectorAll('.mark-read-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            markNotificationRead(id);
+          });
+        });
+      }
+
+      function markNotificationRead(notificationId) {
+        if (!notificationId) return;
+        const notifications = loadNotifications();
+        const notification = notifications.find(n => n.id === notificationId);
+        if (notification) {
+          notification.isRead = true;
+          saveNotifications(notifications);
+          renderNotifications();
+        }
+      }
+
+      function markAllNotificationsRead() {
+        const notifications = loadNotifications();
+        notifications.forEach(n => n.isRead = true);
+        saveNotifications(notifications);
+        renderNotifications();
+      }
+
+      function refreshNotifications() {
+        const newNotifications = generateNotifications();
+        saveNotifications(newNotifications);
+        renderNotifications();
+        
+        // Show feedback
+        const btn = document.getElementById('refreshNotifications');
+        const originalText = btn.textContent;
+        btn.textContent = 'Refreshed!';
+        btn.classList.add('bg-green-700');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('bg-green-700');
+        }, 1400);
+      }
+
+      // Event listeners
+      document.getElementById("filterStatus").addEventListener("change", renderNotifications);
+      document.getElementById("filterSearch").addEventListener("input", renderNotifications);
+      
+      document.getElementById("clearFilters").addEventListener("click", function() {
+        document.getElementById("filterStatus").value = "";
+        document.getElementById("filterSearch").value = "";
+        renderNotifications();
+      });
+      
+      document.getElementById("markAllRead").addEventListener("click", markAllNotificationsRead);
+      document.getElementById("refreshNotifications").addEventListener("click", refreshNotifications);
+
+      // Initialize notifications on page load
+      let existingNotifications = loadNotifications();
+      if (!existingNotifications || existingNotifications.length === 0) {
+        const newNotifications = generateNotifications();
+        saveNotifications(newNotifications);
+      }
+      
+      renderNotifications();
+    });
+  </script>
+</body>
+</html>

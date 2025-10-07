@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Supervisor Profile - FIX-IT DUT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tiny keyframes for the fade-in used on main -->
+  <style>
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* small helper for ripple pseudo-element size (kept tiny) */
+    .ripple-effect {
+      width: 36px;
+      height: 36px;
+      border-radius: 9999px;
+      background: rgba(165,180,252,0.27);
+      position: absolute;
+      pointer-events: none;
+      transform: scale(0);
+      opacity: 0.7;
+      transition: transform .25s, opacity .45s;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-sans flex flex-col"
+      style="background-image: url('background3.jpg');">
+
+
+
+  <!-- Decorative soft background shape -->
+<div aria-hidden="true"
+     class="fixed -top-[120px] -left-[120px] right-0 bottom-0 w-[100vw] h-[100vh] pointer-events-none blur-[40px] z-0 opacity-20"
+     ></div>
+</div>
+
+
+
+  <!-- Header -->
+  <header class="bg-[#212145] flex items-center justify-between px-4 py-3 z-10">
+    <div class="flex items-center gap-3 select-none">
+      <img src="logo.jpg" alt="Logo" class="h-8 w-auto" />
+      <div class="text-white font-extrabold text-lg sm:text-xl">FIX-IT DUT</div>
+    </div>
+
+    <button id="sidebarOpenBtn" aria-label="Open sidebar" class="p-2 rounded-full hover:bg-indigo-700 focus:outline-none bg-transparent">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="white" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10Zm0 5.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z"/></svg>
+    </button>
+  </header>
+
+  <!-- Sidebar overlay + panel (uses Tailwind utility toggles in JS) -->
+  <div id="sidebarBg" class="hidden fixed inset-0 bg-black/40 z-50" aria-hidden="true"></div>
+
+  <nav id="sidebarBox"
+       class="fixed top-0 right-0 bottom-0 w-full max-w-[22rem] sm:w-[17rem] bg-[#212145] shadow-2xl z-50 rounded-tl-2xl rounded-bl-2xl transform translate-x-full transition-transform duration-300 ease-[cubic-bezier(.36,.07,.19,.97)] p-6"
+       aria-hidden="true">
+    <button id="sidebarCloseBtn" class="absolute top-3 left-3 text-gray-400 hover:text-gray-900 text-2xl font-bold bg-transparent" aria-label="Close sidebar">&times;</button>
+
+    <div class="mt-6 flex flex-col gap-3">
+            <a href="Admin-profile.html" id="sidebarProfileBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View profile">
+        <svg width="24" height="24" fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.25a8.25 8.25 0 0 1 15.998 0 .75.75 0 0 1-.75.75h-14.5a.75.75 0 0 1-.748-.75Z"/></svg>
+        <span>Profile</span>
+      </a>
+
+    <a href="Admin-dashboard.html" id="sidebarDashboardBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View dashboard">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+       viewBox="0 0 24 24" fill="none" stroke="#4f46e5" 
+       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="7" height="9" x="3" y="3" rx="1"/>
+    <rect width="7" height="5" x="14" y="3" rx="1"/>
+    <rect width="7" height="9" x="14" y="12" rx="1"/>
+    <rect width="7" height="5" x="3" y="16" rx="1"/>
+  </svg>
+  <span>Dashboard</span>
+</a>
+           <a href="Admin-report.html" id="sidebarReportBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View reports">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#4f46e5" width="24" height="24" class="shrink-0">
+    <path fill-rule="evenodd" d="M13.887 3.182c.396.037.79.08 1.183.128C16.194 3.45 17 4.414 17 5.517V16.75A2.25 2.25 0 0 1 14.75 19h-9.5A2.25 2.25 0 0 1 3 16.75V5.517c0-1.103.806-2.068 1.93-2.207.393-.048.787-.09 1.183-.128A3.001 3.001 0 0 1 9 1h2c1.373 0 2.531.923 2.887 2.182ZM7.5 4A1.5 1.5 0 0 1 9 2.5h2A1.5 1.5 0 0 1 12.5 4v.5h-5V4Z" clip-rule="evenodd" />
+  </svg>
+  <span>Report Page</span>
+</a>
+
+      <a href="Admin-notification2.html" id="sidebarNotificationsBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium relative" aria-label="View notifications">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#4f46e5" width="24" height="24" class="shrink-0">
+    <path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z" clip-rule="evenodd" />
+  </svg>
+  <span>Notifications</span>
+  <span id="notificationCounter" class="absolute right-3 top-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5" style="display:none"></span>
+</a>
+<a href="Technician.html" id="sidebarTechniciansBtn" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-indigo-100 text-indigo-800 font-medium" aria-label="View technicians">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#4f46e5" width="24" height="24" class="shrink-0">
+    <path d="M10 3a3 3 0 11-6 0 3 3 0 016 0Z" />
+    <path fill-rule="evenodd" d="M4 8a4 4 0 018 0v.5a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 014 8.5V8Z" clip-rule="evenodd" />
+    <path d="M14 9a3 3 0 100 6 3 3 0 000-6Z" />
+    <path d="M10.5 15.134a4.492 4.492 0 01-.5-2.134v-.5A1.5 1.5 0 0111.5 11h5a1.5 1.5 0 011.5 1.5v.5a4.5 4.5 0 01-.5 2.134A5.978 5.978 0 0014 17a5.978 5.978 0 00-3.5-1.866Z" />
+  </svg>
+  <span>Technicians</span>
+</a>
+
+
+
+<button id="sidebarLogoutBtn" type="button" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-red-100 text-red-800 font-medium w-full" aria-label="Logout">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#dc2626" width="24" height="24" class="shrink-0">
+    <path fill-rule="evenodd" d="M17 4.25A2.25 2.25 0 0 0 14.75 2h-5.5A2.25 2.25 0 0 0 7 4.25v2a.75.75 0 0 0 1.5 0v-2a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1-.75-.75v-2a.75.75 0 0 0-1.5 0v2A2.25 2.25 0 0 0 9.25 18h5.5A2.25 2.25 0 0 0 17 15.75V4.25Z" clip-rule="evenodd" />
+    <path fill-rule="evenodd" d="M14 10a.75.75 0 0 0-.75-.75H3.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114l-1.048-.943h9.546A.75.75 0 0 0 14 10Z" clip-rule="evenodd" />
+  </svg>
+  <span>Logout</span>
+</button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="flex-1 flex items-center justify-center px-4 py-10 animate-[fadeInUp_0.7s_cubic-bezier(.36,.07,.19,.97)]" style="animation-name: fadeInUp; animation-duration: .7s; animation-timing-function: cubic-bezier(.36,.07,.19,.97);">
+    <div class="bg-[#E5E5E5] backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl p-8 relative z-20">
+      <!-- Profile header -->
+      <div class="flex justify-between items-center mb-6">
+        <a href="Profile(DESKTOP).html" class="text-xl font-bold text-[#212145] select-none">Profile</a>
+        <button id="editBtn" class="bg-[#212145] text-white px-5 py-2 rounded hover:bg-[#4F7CAC] transition-all font-semibold">
+          Edit
+        </button>
+      </div>
+
+      <!-- Profile form -->
+      <form id="profileForm" class="space-y-6">
+        <!-- DUT ID (non-editable) -->
+        <div>
+          <label class="block text-gray-600 font-medium">DUT ID</label>
+          <span id="dutIdDisplay" class="block text-lg font-semibold text-gray-900"></span>
+        </div>
+
+        <!-- EMAIL (non-editable) -->
+        <div>
+          <label class="block text-gray-600 font-medium">Email</label>
+          <span id="emailDisplay" class="block text-lg font-semibold text-gray-900"></span>
+        </div>
+
+        <!-- FULL NAME -->
+        <div>
+          <label class="block text-gray-600 font-medium">Full Name</label>
+          <span id="fullNameDisplay" class="block text-lg font-semibold text-gray-900"></span>
+          <input id="fullNameInput" name="fullName" type="text" class="hidden mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <!-- SURNAME -->
+        <div>
+          <label class="block text-gray-600 font-medium">Surname</label>
+          <span id="surnameDisplay" class="block text-lg font-semibold text-gray-900"></span>
+          <input id="surnameInput" name="surname" type="text" class="hidden mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <!-- GENDER -->
+        <div>
+          <label class="block text-gray-600 font-medium">Gender</label>
+          <span id="genderDisplay" class="block text-lg font-semibold text-gray-900"></span>
+          <select id="genderInput" name="gender" class="hidden mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Select Gender</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+            <option value="other">Other</option>
+            <option value="preferNotToSay">Prefer not to say</option>
+          </select>
+        </div>
+
+        <!-- ROLE (non-editable) -->
+        <div>
+          <label class="block text-gray-600 font-medium">Role</label>
+          <span id="roleDisplay" class="block text-lg font-semibold text-gray-900"></span>
+        </div>
+
+        <!-- PASSWORD -->
+        <div>
+          <label class="block text-gray-600 font-medium">Password</label>
+          <span id="passwordDisplay" class="block text-lg font-semibold text-gray-900 select-none">••••••••</span>
+          <div class="relative hidden" id="passwordEditWrapper">
+            <input id="passwordInput" name="password" type="password" class="mt-2 w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10" />
+            <button id="togglePassword" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
+              <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path id="eyeOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0c0 5-9 9-9 9s-9-4-9-9a9 9 0 0118 0z" />
+                <path id="eyeClosed" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M4.93 4.93A10.04 10.04 0 0021 12m-1.42 4.88A10.02 10.02 0 0112 21c-5 0-9-4-9-9a9 9 0 011.42-4.88M9.88 9.88a3 3 0 104.24 4.24" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Scripts (profile logic + sidebar wiring) -->
+  <script>
+    // --------- PROFILE DATA MANAGEMENT ---------
+    const defaultProfile = {
+      dutId: "22403583",
+      email: localStorage.getItem('signedInEmail') || "",
+      fullName: "Suko",
+      surname: "Mhlongo",
+      gender: "male",
+      role: "Supervisor",
+      password: "password123"
+    };
+
+    function getProfile() {
+      return JSON.parse(localStorage.getItem('userProfile') || "null") || defaultProfile;
+    }
+    function saveProfile(profile) {
+      localStorage.setItem('userProfile', JSON.stringify(profile));
+    }
+
+    // --------- DISPLAY/EDIT MODE TOGGLE ---------
+    let isEditing = false;
+
+    const editBtn = document.getElementById('editBtn');
+    const logoutBtn = document.getElementById('sidebarLogoutBtn') || document.getElementById('logoutBtn');
+    const dutIdDisplay = document.getElementById('dutIdDisplay');
+    const emailDisplay = document.getElementById('emailDisplay');
+    const fullNameDisplay = document.getElementById('fullNameDisplay');
+    const surnameDisplay = document.getElementById('surnameDisplay');
+    const genderDisplay = document.getElementById('genderDisplay');
+    const roleDisplay = document.getElementById('roleDisplay');
+    const passwordDisplay = document.getElementById('passwordDisplay');
+    const fullNameInput = document.getElementById('fullNameInput');
+    const surnameInput = document.getElementById('surnameInput');
+    const genderInput = document.getElementById('genderInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordEditWrapper = document.getElementById('passwordEditWrapper');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClosed = document.getElementById('eyeClosed');
+
+    function capitalize(str) {
+      if (!str) return "";
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function setDisplayMode(profile) {
+      dutIdDisplay.textContent = profile.dutId;
+      emailDisplay.textContent = profile.email;
+      fullNameDisplay.textContent = profile.fullName;
+      surnameDisplay.textContent = profile.surname;
+      genderDisplay.textContent = capitalize(profile.gender);
+      roleDisplay.textContent = profile.role;
+      passwordDisplay.textContent = "••••••••";
+      [fullNameInput, surnameInput, genderInput, passwordEditWrapper].forEach(el => el.classList.add('hidden'));
+      [fullNameDisplay, surnameDisplay, genderDisplay, passwordDisplay].forEach(el => el.classList.remove('hidden'));
+      editBtn.textContent = "Edit";
+    }
+
+    function setEditMode(profile) {
+      fullNameInput.value = profile.fullName;
+      surnameInput.value = profile.surname;
+      genderInput.value = profile.gender;
+      passwordInput.value = profile.password;
+      [fullNameInput, surnameInput, genderInput, passwordEditWrapper].forEach(el => el.classList.remove('hidden'));
+      [fullNameDisplay, surnameDisplay, genderDisplay, passwordDisplay].forEach(el => el.classList.add('hidden'));
+      editBtn.textContent = "Save";
+    }
+
+    function loadProfile() {
+      const profile = getProfile();
+      setDisplayMode(profile);
+    }
+
+    editBtn.addEventListener('click', () => {
+      const profile = getProfile();
+      if (!isEditing) {
+        setEditMode(profile);
+        isEditing = true;
+      } else {
+        profile.fullName = fullNameInput.value.trim();
+        profile.surname = surnameInput.value.trim();
+        profile.gender = genderInput.value;
+        profile.password = passwordInput.value;
+        saveProfile(profile);
+        setDisplayMode(profile);
+        isEditing = false;
+      }
+    });
+
+    if (togglePassword) {
+      togglePassword.addEventListener('click', () => {
+        const type = passwordInput.type;
+        passwordInput.type = type === 'password' ? 'text' : 'password';
+        if (eyeOpen) eyeOpen.classList.toggle('hidden');
+        if (eyeClosed) eyeClosed.classList.toggle('hidden');
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('signedInEmail');
+        localStorage.removeItem('userProfile');
+        window.location.href = "sign-in.html";
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", loadProfile);
+
+    /* ---------------- Sidebar open/close using Tailwind class toggles ---------------- */
+    const sidebarOpenBtn = document.getElementById('sidebarOpenBtn');
+    const sidebarBg = document.getElementById('sidebarBg');
+    const sidebarBox = document.getElementById('sidebarBox');
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+    const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
+
+    function openSidebar() {
+      if (!sidebarBg || !sidebarBox) return;
+      sidebarBg.classList.remove('hidden');
+      sidebarBg.classList.add('block');
+      sidebarBox.classList.remove('translate-x-full');
+      sidebarBox.classList.add('translate-x-0');
+      sidebarBg.setAttribute('aria-hidden', 'false');
+      sidebarBox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+      if (!sidebarBg || !sidebarBox) return;
+      sidebarBox.classList.add('translate-x-full');
+      sidebarBox.classList.remove('translate-x-0');
+      sidebarBg.classList.add('hidden');
+      sidebarBg.classList.remove('block');
+      sidebarBg.setAttribute('aria-hidden', 'true');
+      sidebarBox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    if (sidebarOpenBtn) sidebarOpenBtn.addEventListener('click', openSidebar);
+    if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
+    if (sidebarBg) sidebarBg.addEventListener('click', (e) => { if (e.target === sidebarBg) closeSidebar(); });
+    if (sidebarProfileBtn) sidebarProfileBtn.addEventListener('click', () => { window.location.href = "Profile.html"; });
+
+    /* update notification counter (reads admin_notifications array) */
+    function updateNotificationCounter() {
+      const counter = document.getElementById('notificationCounter');
+      if (!counter) return;
+      const notifs = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+      const count = Array.isArray(notifs) ? notifs.length : 0;
+      if (count > 0) {
+        counter.classList.remove('hidden');
+        counter.textContent = count;
+      } else {
+        counter.classList.add('hidden');
+      }
+    }
+    updateNotificationCounter();
+    setInterval(updateNotificationCounter, 30000);
+  </script>
+</body>
+</html>
