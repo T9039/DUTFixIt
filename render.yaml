@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: dut-maintenance-system
+    env: python
+    plan: free
+    buildCommand:
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app
+
+    envVars:
+      # Application environment settings
+      - key: FLASK_ENV
+        value: production
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      # Database configuration (choose one)
+      # MySQL
+      # - key: DATABASE_URL
+      #   value: mysql+pymysql://root:<password>@<your-mysql-host>/<your-db-name>
+
+      # SQLite
+      - key: DATABASE_URL
+        value: sqlite:///instance/maintenance.db
+
+      #Email / SMTP (optional if you add notifications)
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: true
+      - key: MAIL_USERNAME
+        value: your_email@dut4life.ac.za
+      - key: MAIL_PASSWORD
+        sync: false  # You'll set this securely in Render dashboard
+
+    # Auto-deploy when pushing to main branch
+    autoDeploy: true
+
+databases:
+  - name: dut-maintenance-db
+    plan: free
+    databaseName: dut_maintenance
+    user: dut_admin
+    region: oregon
+
